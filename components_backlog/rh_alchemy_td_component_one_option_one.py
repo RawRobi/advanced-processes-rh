@@ -11,7 +11,7 @@ HEIGHT = 540
 #This lets the screen move
 SCREEN_X = [2160, 1080, 0, -1080]
 
-TITLE_SCREEN = Actor("full_menu_3x.png")
+TITLE_SCREEN = Actor("full_menu.png")
 TITLE_SCREEN.y = 270
 
 MENU_BUTTON_WIDTH = 360
@@ -21,7 +21,7 @@ MENU_BUTTON_Y_DIFFERENCE = 130
 UI_BUTTON_SIDE = 90
 UI_BUTTON_SPACING = 85
 
-PLAY_BUTTON = Actor("menu_play_text_3x.png")
+PLAY_BUTTON = Actor("menu_play_text.png")
 PLAY_BUTTON.x = MENU_BUTTON_X
 PLAY_BUTTON.y = 195
 PLAY_BUTTON_AREA = [
@@ -31,7 +31,7 @@ PLAY_BUTTON_AREA = [
     PLAY_BUTTON.y + (MENU_BUTTON_HEIGHT / 2)
 ]
 
-CREDITS_BUTTON = Actor("menu_credits_text_3x.png")
+CREDITS_BUTTON = Actor("menu_credits_text.png")
 CREDITS_BUTTON.x = MENU_BUTTON_X
 CREDITS_BUTTON.y = PLAY_BUTTON.y + MENU_BUTTON_Y_DIFFERENCE
 CREDITS_BUTTON_AREA = [
@@ -41,9 +41,9 @@ CREDITS_BUTTON_AREA = [
     CREDITS_BUTTON.y + (MENU_BUTTON_HEIGHT / 2)
 ]
 
-DEBUG_BUTTON = Actor("menu_debug_text_off_3x.png")
-DEBUG_BUTTON_ON = Actor("menu_debug_text_on_3x.png")
-DEBUG_BUTTON_OFF = Actor("menu_debug_text_off_3x.png")
+DEBUG_BUTTON = Actor("menu_debug_text_off.png")
+DEBUG_BUTTON_ON = Actor("menu_debug_text_on.png")
+DEBUG_BUTTON_OFF = Actor("menu_debug_text_off.png")
 DEBUG_BUTTON_OFF.pos = DEBUG_BUTTON.pos
 DEBUG_BUTTON.x = MENU_BUTTON_X
 DEBUG_BUTTON_ON.x = DEBUG_BUTTON.x
@@ -58,7 +58,7 @@ DEBUG_BUTTON_AREA = [
     DEBUG_BUTTON.y + (MENU_BUTTON_HEIGHT / 2)
 ]
 
-BACK_TO_HOME_BUTTON = Actor("credits_exit_button_3x.png")
+BACK_TO_HOME_BUTTON = Actor("credits_exit_button.png")
 BACK_TO_HOME_BUTTON.x = 995
 BACK_TO_HOME_BUTTON.y = 85
 BACK_TO_HOME_BUTTON_AREA = [
