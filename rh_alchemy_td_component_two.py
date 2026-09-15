@@ -95,6 +95,7 @@ back_from_play_area = [
 difficulty_display = Actor("difficulty_display.png")
 difficulty_display.x = 1360
 difficulty_display.y = 495
+
 no_difficulty_display = Actor("difficulty_display_none.png")
 easy_difficulty_display = Actor("difficulty_display_easy.png")
 medium_difficulty_display = Actor("difficulty_display_medium.png")
@@ -109,7 +110,7 @@ easy_difficulty_icon_select = Actor("difficulty_easy_icon_select.png")
 easy_difficulty_icon = easy_difficulty_icon_default
 easy_difficulty_icon.x = 1220
 easy_difficulty_icon.y = 320
-easy_difficulty_icon.area = [
+easy_difficulty_icon_area = [
     easy_difficulty_icon.x - (DIFFICULTY_ICON_HEIGHT / 2),
     easy_difficulty_icon.x + (DIFFICULTY_ICON_HEIGHT / 2),
     easy_difficulty_icon.y - (DIFFICULTY_ICON_WIDTH / 2),
@@ -146,6 +147,7 @@ def snap(x_of_screen, screen):
     global back_from_credits
     global play_button, credits_button, debug_button
     global back_from_play, difficulty_display, current_difficulty_display
+    global easy_difficulty_icon
     FULL_MENU.x = x_of_screen
     if screen == 0:
         back_from_credits.x = 995
@@ -165,7 +167,8 @@ def update():
     global play_button_area
     global credits_button_area
     global debug_button_area
-    global back_from_play_area
+    global back_from_play_area, current_difficulty_display
+    global easy_difficulty_icon_area, easy_difficulty_icon
     if game_start == False:
         if FULL_MENU.x !=- SCREEN_X[current_screen]:
             if FULL_MENU.x >= SCREEN_X[current_screen]:
@@ -223,6 +226,12 @@ def update():
             back_from_play.y - (UI_BUTTON_SIDE / 2),
             back_from_play.y + (UI_BUTTON_SIDE / 2)
         ]
+        easy_difficulty_icon_area = [
+            easy_difficulty_icon.x - (DIFFICULTY_ICON_HEIGHT / 2),
+            easy_difficulty_icon.x + (DIFFICULTY_ICON_HEIGHT / 2),
+            easy_difficulty_icon.y - (DIFFICULTY_ICON_WIDTH / 2),
+            easy_difficulty_icon.y + (DIFFICULTY_ICON_WIDTH / 2)
+        ]
         PLAY_BUTTON_DEFAULT.pos = play_button.pos
         PLAY_BUTTON_HOVER.pos = play_button.pos
         BACK_FROM_CREDITS_DEFAULT.pos = back_from_credits.pos
@@ -235,20 +244,23 @@ def update():
         DEBUG_BUTTON_OFF_HOVER.pos = debug_button.pos
         BACK_FROM_PLAY_DEFAULT.pos = back_from_play.pos
         BACK_FROM_PLAY_HOVER.pos = back_from_play.pos
-        no_difficulty_display.pos = difficulty_display.pos
-        easy_difficulty_display.pos = difficulty_display.pos
-        medium_difficulty_display.pos = difficulty_display.pos
-        hard_difficulty_display.pos = difficulty_display.pos
+        no_difficulty_display.pos = current_difficulty_display.pos
+        easy_difficulty_display.pos = current_difficulty_display.pos
+        medium_difficulty_display.pos = current_difficulty_display.pos
+        hard_difficulty_display.pos = current_difficulty_display.pos
+        easy_difficulty_icon_hover.pos = easy_difficulty_icon.pos
+        easy_difficulty_icon_select.pos = easy_difficulty_icon.pos
+        if difficulty == 1:
+            current_difficulty_display = easy_difficulty_display
+            easy_difficulty_icon = easy_difficulty_icon_select
         
 
 
 def on_mouse_move(pos):
     global debug
-    global back_from_credits
-    global play_button
-    global credits_button
-    global debug_button
-    global back_from_play
+    global back_from_credits, play_button
+    global credits_button, debug_button, back_from_play
+    global difficulty, easy_difficulty_icon
     if current_screen == 0:
         if (
             pos[0] >= back_from_credits_area[0] and
@@ -312,12 +324,24 @@ def on_mouse_move(pos):
             back_from_play = BACK_FROM_PLAY_HOVER
         else:
             back_from_play = BACK_FROM_PLAY_DEFAULT
+            if (
+                pos[0] >= easy_difficulty_icon_area[0] and
+                pos[0] <= easy_difficulty_icon_area[1] and
+                pos[1] >= easy_difficulty_icon_area[2] and
+                pos[1] <= easy_difficulty_icon_area[3] and
+                difficulty != 1
+                ):
+                if debug == True:
+                    print("easy difficulty")
+                easy_difficulty_icon = easy_difficulty_icon_hover
+            elif difficulty != 1:
+                easy_difficulty_icon = easy_difficulty_icon_default
 
 
 def on_mouse_down(pos, button):
-    global debug
-    global debug_button
-    global current_screen
+    global debug, debug_button
+    global current_screen, difficulty
+    global easy_difficulty_icon
     if current_screen == 0:
         if (
             pos[0] >= back_from_credits_area[0] and
@@ -376,7 +400,17 @@ def on_mouse_down(pos, button):
             if debug == True:
                 print("back to home page")
             current_screen = 1
-        
+        if difficulty != 1:
+            if (
+                pos[0] >= easy_difficulty_icon_area[0] and
+                pos[0] <= easy_difficulty_icon_area[1] and
+                pos[1] >= easy_difficulty_icon_area[2] and
+                pos[1] <= easy_difficulty_icon_area[3]
+                ):
+                if debug == True:
+                    print("easy difficulty pressed")
+                easy_difficulty_icon = easy_difficulty_icon_select
+                difficulty = 1
 
 
 def draw():
