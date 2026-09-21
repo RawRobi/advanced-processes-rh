@@ -96,26 +96,53 @@ difficulty_display = Actor("difficulty_display.png")
 difficulty_display.x = 1360
 difficulty_display.y = 495
 
-no_difficulty_display = Actor("difficulty_display_none.png")
-easy_difficulty_display = Actor("difficulty_display_easy.png")
-medium_difficulty_display = Actor("difficulty_display_medium.png")
-hard_difficulty_display = Actor("difficulty_display_hard.png")
-current_difficulty_display = no_difficulty_display
+NO_DIFFICULTY_DISPLAY = Actor("difficulty_display_none.png")
+EASY_DIFFICULTY_DISPLAY = Actor("difficulty_display_easy.png")
+MEDIUM_DIFFICULTY_DISPLAY = Actor("difficulty_display_medium.png")
+HARD_DIFFICULTY_DISPLAY = Actor("difficulty_display_hard.png")
+current_difficulty_display = NO_DIFFICULTY_DISPLAY
 current_difficulty_display.x = 1780
 current_difficulty_display.y = 495
 
-easy_difficulty_icon_default = Actor("difficulty_easy_icon.png")
-easy_difficulty_icon_hover = Actor("difficulty_easy_icon_hover.png")
-easy_difficulty_icon_select = Actor("difficulty_easy_icon_select.png")
-easy_difficulty_icon = easy_difficulty_icon_default
+EASY_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_easy_icon.png")
+EASY_DIFFICULTY_ICON_HOVER = Actor("difficulty_easy_icon_hover.png")
+EASY_DIFFICULTY_ICON_SELECT = Actor("difficulty_easy_icon_select.png")
+easy_difficulty_icon = EASY_DIFFICULTY_ICON_DEFAULT
 easy_difficulty_icon.x = 1220
 easy_difficulty_icon.y = 320
 easy_difficulty_icon_area = [
-    easy_difficulty_icon.x - (DIFFICULTY_ICON_HEIGHT / 2),
-    easy_difficulty_icon.x + (DIFFICULTY_ICON_HEIGHT / 2),
-    easy_difficulty_icon.y - (DIFFICULTY_ICON_WIDTH / 2),
-    easy_difficulty_icon.y + (DIFFICULTY_ICON_WIDTH / 2)
+    easy_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
+    easy_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
+    easy_difficulty_icon.y - (DIFFICULTY_ICON_HEIGHT / 2),
+    easy_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
     ]
+
+MEDIUM_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_medium_icon.png")
+MEDIUM_DIFFICULTY_ICON_HOVER = Actor("difficulty_medium_icon_hover.png")
+MEDIUM_DIFFICULTY_ICON_SELECT = Actor("difficulty_medium_icon_select.png")
+medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_DEFAULT
+medium_difficulty_icon.x = 1520
+medium_difficulty_icon.y = 280
+medium_difficulty_icon_area = [
+    medium_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
+    medium_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
+    medium_difficulty_icon.y - (DIFFICULTY_ICON_HEIGHT / 2),
+    medium_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
+    ]
+
+HARD_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_hard_icon.png")
+HARD_DIFFICULTY_ICON_HOVER = Actor("difficulty_hard_icon_hover.png")
+HARD_DIFFICULTY_ICON_SELECT = Actor("difficulty_hard_icon_select.png")
+hard_difficulty_icon = HARD_DIFFICULTY_ICON_DEFAULT
+hard_difficulty_icon.x = 1950
+hard_difficulty_icon.y = 310
+hard_difficulty_icon_area = [
+    hard_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
+    hard_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
+    hard_difficulty_icon.y - (DIFFICULTY_ICON_HEIGHT / 2),
+    hard_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
+    ]
+
 
 # number values for difficulties being, in order:
 # none, easy, medium and hard
@@ -126,11 +153,12 @@ FULL_MENU.x = SCREEN_X[current_screen]
 debug = False
 
 def move_all(movement, direction):
+    # To move all the buttons and the screen at the same time
     global FULL_MENU
     global back_from_credits
     global play_button, credits_button, debug_button
     global back_from_play, difficulty_display, current_difficulty_display
-    global easy_difficulty_icon
+    global easy_difficulty_icon, medium_difficulty_icon, hard_difficulty_icon
     FULL_MENU.x += movement * direction
     back_from_credits.x += movement * direction
     play_button.x += movement * direction
@@ -140,26 +168,8 @@ def move_all(movement, direction):
     difficulty_display.x += movement * direction
     current_difficulty_display.x += movement * direction
     easy_difficulty_icon.x += movement * direction
-
-
-def snap(x_of_screen, screen):
-    global FULL_MENU
-    global back_from_credits
-    global play_button, credits_button, debug_button
-    global back_from_play, difficulty_display, current_difficulty_display
-    global easy_difficulty_icon
-    FULL_MENU.x = x_of_screen
-    if screen == 0:
-        back_from_credits.x = 995
-    if screen == 1:
-        play_button.x = MENU_BUTTON_X
-        credits_button.x = MENU_BUTTON_X
-        debug_button.x = MENU_BUTTON_X
-    if screen == 2:
-        back_from_play.x = 995
-        difficulty_display.x = 85
-        current_difficulty_display.x = 550
-        easy_difficulty_icon.x = 140
+    medium_difficulty_icon.x += movement * direction
+    hard_difficulty_icon.x += movement * direction
 
 
 def update():
@@ -169,6 +179,8 @@ def update():
     global debug_button_area
     global back_from_play_area, current_difficulty_display
     global easy_difficulty_icon_area, easy_difficulty_icon
+    global medium_difficulty_icon_area, medium_difficulty_icon
+    global hard_difficulty_icon_area, hard_difficulty_icon
     if game_start == False:
         if FULL_MENU.x !=- SCREEN_X[current_screen]:
             if FULL_MENU.x >= SCREEN_X[current_screen]:
@@ -188,13 +200,11 @@ def update():
                 move = 20
             elif distance >= 100:
                 move = 10
-            elif distance >= 15:
+            elif distance >= 9:
                 move = 5
             else:
                 move = 1
-            if distance < 1:
-                snap(SCREEN_X[current_screen], current_screen)
-            else:
+            if distance != 0:
                 move_all(move, direction)
         back_from_credits_area = [
             back_from_credits.x - (UI_BUTTON_SIDE / 2),
@@ -227,10 +237,22 @@ def update():
             back_from_play.y + (UI_BUTTON_SIDE / 2)
         ]
         easy_difficulty_icon_area = [
-            easy_difficulty_icon.x - (DIFFICULTY_ICON_HEIGHT / 2),
-            easy_difficulty_icon.x + (DIFFICULTY_ICON_HEIGHT / 2),
-            easy_difficulty_icon.y - (DIFFICULTY_ICON_WIDTH / 2),
-            easy_difficulty_icon.y + (DIFFICULTY_ICON_WIDTH / 2)
+            easy_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
+            easy_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
+            easy_difficulty_icon.y - (DIFFICULTY_ICON_HEIGHT / 2),
+            easy_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
+        ]
+        medium_difficulty_icon_area = [
+            medium_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
+            medium_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
+            medium_difficulty_icon.y - (DIFFICULTY_ICON_HEIGHT / 2),
+            medium_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
+        ]
+        hard_difficulty_icon_area = [
+            hard_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
+            hard_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
+            hard_difficulty_icon.y - (DIFFICULTY_ICON_HEIGHT / 2),
+            hard_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
         ]
         PLAY_BUTTON_DEFAULT.pos = play_button.pos
         PLAY_BUTTON_HOVER.pos = play_button.pos
@@ -244,16 +266,28 @@ def update():
         DEBUG_BUTTON_OFF_HOVER.pos = debug_button.pos
         BACK_FROM_PLAY_DEFAULT.pos = back_from_play.pos
         BACK_FROM_PLAY_HOVER.pos = back_from_play.pos
-        no_difficulty_display.pos = current_difficulty_display.pos
-        easy_difficulty_display.pos = current_difficulty_display.pos
-        medium_difficulty_display.pos = current_difficulty_display.pos
-        hard_difficulty_display.pos = current_difficulty_display.pos
-        easy_difficulty_icon_hover.pos = easy_difficulty_icon.pos
-        easy_difficulty_icon_select.pos = easy_difficulty_icon.pos
+        NO_DIFFICULTY_DISPLAY.pos = current_difficulty_display.pos
+        EASY_DIFFICULTY_DISPLAY.pos = current_difficulty_display.pos
+        MEDIUM_DIFFICULTY_DISPLAY.pos = current_difficulty_display.pos
+        HARD_DIFFICULTY_DISPLAY.pos = current_difficulty_display.pos
+        EASY_DIFFICULTY_ICON_HOVER.pos = easy_difficulty_icon.pos
+        EASY_DIFFICULTY_ICON_SELECT.pos = easy_difficulty_icon.pos
+        EASY_DIFFICULTY_ICON_DEFAULT.pos = easy_difficulty_icon.pos
+        MEDIUM_DIFFICULTY_ICON_HOVER.pos = medium_difficulty_icon.pos
+        MEDIUM_DIFFICULTY_ICON_SELECT.pos = medium_difficulty_icon.pos
+        MEDIUM_DIFFICULTY_ICON_DEFAULT.pos = medium_difficulty_icon.pos
+        HARD_DIFFICULTY_ICON_HOVER.pos = hard_difficulty_icon.pos
+        HARD_DIFFICULTY_ICON_SELECT.pos = hard_difficulty_icon.pos
+        HARD_DIFFICULTY_ICON_DEFAULT.pos = hard_difficulty_icon.pos
         if difficulty == 1:
-            current_difficulty_display = easy_difficulty_display
-            easy_difficulty_icon = easy_difficulty_icon_select
-        
+            current_difficulty_display = EASY_DIFFICULTY_DISPLAY
+            easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
+        elif difficulty == 2:
+            current_difficulty_display = MEDIUM_DIFFICULTY_DISPLAY
+            medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_SELECT
+        elif difficulty == 3:
+            current_difficulty_display = HARD_DIFFICULTY_DISPLAY
+            hard_difficulty_icon = HARD_DIFFICULTY_ICON_SELECT
 
 
 def on_mouse_move(pos):
@@ -261,6 +295,7 @@ def on_mouse_move(pos):
     global back_from_credits, play_button
     global credits_button, debug_button, back_from_play
     global difficulty, easy_difficulty_icon
+    global medium_difficulty_icon, hard_difficulty_icon
     if current_screen == 0:
         if (
             pos[0] >= back_from_credits_area[0] and
@@ -303,7 +338,7 @@ def on_mouse_move(pos):
             pos[1] <= debug_button_area[3]
             ):
             if debug == True:
-                print("hover credit buton")
+                print("hover debug buton")
                 debug_button = DEBUG_BUTTON_ON_HOVER
             if debug == False:
                 debug_button = DEBUG_BUTTON_OFF_HOVER
@@ -324,18 +359,43 @@ def on_mouse_move(pos):
             back_from_play = BACK_FROM_PLAY_HOVER
         else:
             back_from_play = BACK_FROM_PLAY_DEFAULT
-            if (
-                pos[0] >= easy_difficulty_icon_area[0] and
-                pos[0] <= easy_difficulty_icon_area[1] and
-                pos[1] >= easy_difficulty_icon_area[2] and
-                pos[1] <= easy_difficulty_icon_area[3] and
-                difficulty != 1
-                ):
-                if debug == True:
-                    print("easy difficulty")
-                easy_difficulty_icon = easy_difficulty_icon_hover
-            elif difficulty != 1:
-                easy_difficulty_icon = easy_difficulty_icon_default
+        if (
+            pos[0] >= easy_difficulty_icon_area[0] and
+            pos[0] <= easy_difficulty_icon_area[1] and
+            pos[1] >= easy_difficulty_icon_area[2] and
+            pos[1] <= easy_difficulty_icon_area[3] and
+            difficulty != 1
+            ):
+            if debug == True:
+                print("easy difficulty")
+                print(easy_difficulty_icon.x, pos[0])
+            easy_difficulty_icon = EASY_DIFFICULTY_ICON_HOVER
+        elif difficulty != 1:
+            easy_difficulty_icon = EASY_DIFFICULTY_ICON_DEFAULT
+        if (
+            pos[0] >= medium_difficulty_icon_area[0] and
+            pos[0] <= medium_difficulty_icon_area[1] and
+            pos[1] >= medium_difficulty_icon_area[2] and
+            pos[1] <= medium_difficulty_icon_area[3] and
+            difficulty != 2
+            ):
+            if debug == True:
+                print("medium difficulty")
+            medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_HOVER
+        elif difficulty != 2:
+            medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_DEFAULT
+        if (
+            pos[0] >= hard_difficulty_icon_area[0] and
+            pos[0] <= hard_difficulty_icon_area[1] and
+            pos[1] >= hard_difficulty_icon_area[2] and
+            pos[1] <= hard_difficulty_icon_area[3] and
+            difficulty != 3
+            ):
+            if debug == True:
+                print("hard difficulty")
+            hard_difficulty_icon = HARD_DIFFICULTY_ICON_HOVER
+        elif difficulty != 3:
+            hard_difficulty_icon = HARD_DIFFICULTY_ICON_DEFAULT
 
 
 def on_mouse_down(pos, button):
@@ -405,15 +465,44 @@ def on_mouse_down(pos, button):
                 pos[0] >= easy_difficulty_icon_area[0] and
                 pos[0] <= easy_difficulty_icon_area[1] and
                 pos[1] >= easy_difficulty_icon_area[2] and
-                pos[1] <= easy_difficulty_icon_area[3]
+                pos[1] <= easy_difficulty_icon_area[3] and
+                mouse.LEFT == button
                 ):
                 if debug == True:
                     print("easy difficulty pressed")
-                easy_difficulty_icon = easy_difficulty_icon_select
+                easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
                 difficulty = 1
+        if difficulty != 2:
+            if (
+                pos[0] >= medium_difficulty_icon_area[0] and
+                pos[0] <= medium_difficulty_icon_area[1] and
+                pos[1] >= medium_difficulty_icon_area[2] and
+                pos[1] <= medium_difficulty_icon_area[3] and
+                mouse.LEFT == button
+                ):
+                if debug == True:
+                    print("medium difficulty pressed")
+                medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_SELECT
+                difficulty = 2
+        if difficulty != 3:
+            if (
+                pos[0] >= hard_difficulty_icon_area[0] and
+                pos[0] <= hard_difficulty_icon_area[1] and
+                pos[1] >= hard_difficulty_icon_area[2] and
+                pos[1] <= hard_difficulty_icon_area[3] and
+                mouse.LEFT == button
+                ):
+                if debug == True:
+                    print("hard difficulty pressed")
+                hard_difficulty_icon = HARD_DIFFICULTY_ICON_SELECT
+                difficulty = 3
 
 
-def draw():
+def prepare_game():
+    
+
+
+def draw(): # Draw all the 
     FULL_MENU.draw()
     back_from_credits.draw()
     play_button.draw()
@@ -423,6 +512,8 @@ def draw():
     difficulty_display.draw()
     current_difficulty_display.draw()
     easy_difficulty_icon.draw()
+    medium_difficulty_icon.draw()
+    hard_difficulty_icon.draw()
 
 
 pgzrun.go() # This must be at the end of the code for it to run
