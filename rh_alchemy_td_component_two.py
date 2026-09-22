@@ -1,4 +1,6 @@
 import pgzrun
+import random
+import time
 """
 COMPONENT ONE UPDATES ON FEEDBACK
 
@@ -143,6 +145,23 @@ hard_difficulty_icon_area = [
     hard_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
     ]
 
+GAME_START_BUTTON_DEFAULT = Actor("difficulty_start_text.png")
+GAME_START_BUTTON_HOVER = Actor("difficulty_start_text_hover.png")
+game_start_button = GAME_START_BUTTON_DEFAULT
+game_start_button.x = 1200
+game_start_button.y = 250
+game_start_button_area = [
+    game_start_button.x - (MENU_BUTTON_WIDTH / 2),
+    game_start_button.x + (MENU_BUTTON_WIDTH / 2),
+    game_start_button.y - (MENU_BUTTON_HEIGHT / 2),
+    game_start_button.y + (MENU_BUTTON_HEIGHT / 2)
+]
+
+
+transition = Actor("dark_transition_0.png")
+TRANSITION_FRAMES = []
+for i in range(17):
+    TRANSITION_FRAMES.append(Actor("dark_transition_" + str(i) + ".png"))
 
 # number values for difficulties being, in order:
 # none, easy, medium and hard
@@ -159,6 +178,7 @@ def move_all(movement, direction):
     global play_button, credits_button, debug_button
     global back_from_play, difficulty_display, current_difficulty_display
     global easy_difficulty_icon, medium_difficulty_icon, hard_difficulty_icon
+    global game_start_button
     FULL_MENU.x += movement * direction
     back_from_credits.x += movement * direction
     play_button.x += movement * direction
@@ -170,6 +190,7 @@ def move_all(movement, direction):
     easy_difficulty_icon.x += movement * direction
     medium_difficulty_icon.x += movement * direction
     hard_difficulty_icon.x += movement * direction
+    game_start_button.x += movement + direction
 
 
 def update():
@@ -181,6 +202,7 @@ def update():
     global easy_difficulty_icon_area, easy_difficulty_icon
     global medium_difficulty_icon_area, medium_difficulty_icon
     global hard_difficulty_icon_area, hard_difficulty_icon
+    global game_start_button_area
     if game_start == False:
         if FULL_MENU.x !=- SCREEN_X[current_screen]:
             if FULL_MENU.x >= SCREEN_X[current_screen]:
@@ -254,6 +276,12 @@ def update():
             hard_difficulty_icon.y - (DIFFICULTY_ICON_HEIGHT / 2),
             hard_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
         ]
+        game_start_button_area = [
+            game_start_button.x - (MENU_BUTTON_WIDTH / 2),
+            game_start_button.x + (MENU_BUTTON_WIDTH / 2),
+            game_start_button.y - (MENU_BUTTON_HEIGHT / 2),
+            game_start_button.y + (MENU_BUTTON_HEIGHT / 2)
+        ]
         PLAY_BUTTON_DEFAULT.pos = play_button.pos
         PLAY_BUTTON_HOVER.pos = play_button.pos
         BACK_FROM_CREDITS_DEFAULT.pos = back_from_credits.pos
@@ -279,6 +307,8 @@ def update():
         HARD_DIFFICULTY_ICON_HOVER.pos = hard_difficulty_icon.pos
         HARD_DIFFICULTY_ICON_SELECT.pos = hard_difficulty_icon.pos
         HARD_DIFFICULTY_ICON_DEFAULT.pos = hard_difficulty_icon.pos
+        GAME_START_BUTTON_DEFAULT.pos = game_start_button.pos
+        GAME_START_BUTTON_HOVER.pos = game_start_button.pos
         if difficulty == 1:
             current_difficulty_display = EASY_DIFFICULTY_DISPLAY
             easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
@@ -499,6 +529,8 @@ def on_mouse_down(pos, button):
 
 
 def prepare_game():
+    time.sleep(.2)
+    transition = TRANSITION_FRAMES[i]
     
 
 
@@ -514,6 +546,7 @@ def draw(): # Draw all the
     easy_difficulty_icon.draw()
     medium_difficulty_icon.draw()
     hard_difficulty_icon.draw()
+    transition.draw()
 
 
 pgzrun.go() # This must be at the end of the code for it to run
