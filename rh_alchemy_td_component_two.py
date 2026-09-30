@@ -147,9 +147,10 @@ hard_difficulty_icon_area = [
 
 GAME_START_BUTTON_DEFAULT = Actor("difficulty_start_text.png")
 GAME_START_BUTTON_HOVER = Actor("difficulty_start_text_hover.png")
-game_start_button = GAME_START_BUTTON_DEFAULT
-game_start_button.x = 1200
-game_start_button.y = 250
+GAME_START_BUTTON_UNSELECTABLE = Actor("difficulty_start_text_unselectable.png")
+game_start_button = GAME_START_BUTTON_UNSELECTABLE
+game_start_button.x = 1810
+game_start_button.y = 85
 game_start_button_area = [
     game_start_button.x - (MENU_BUTTON_WIDTH / 2),
     game_start_button.x + (MENU_BUTTON_WIDTH / 2),
@@ -157,11 +158,6 @@ game_start_button_area = [
     game_start_button.y + (MENU_BUTTON_HEIGHT / 2)
 ]
 
-
-transition = Actor("dark_transition_0.png")
-TRANSITION_FRAMES = []
-for i in range(17):
-    TRANSITION_FRAMES.append(Actor("dark_transition_" + str(i) + ".png"))
 
 # number values for difficulties being, in order:
 # none, easy, medium and hard
@@ -178,19 +174,20 @@ def move_all(movement, direction):
     global play_button, credits_button, debug_button
     global back_from_play, difficulty_display, current_difficulty_display
     global easy_difficulty_icon, medium_difficulty_icon, hard_difficulty_icon
-    global game_start_button
+    global game_start_button, transition
+    if game_start == False:
+        back_from_credits.x += movement * direction
+        play_button.x += movement * direction
+        credits_button.x += + movement * direction
+        debug_button.x += movement * direction
+        back_from_play.x += movement * direction
+        difficulty_display.x += movement * direction
+        current_difficulty_display.x += movement * direction
+        easy_difficulty_icon.x += movement * direction
+        medium_difficulty_icon.x += movement * direction
+        hard_difficulty_icon.x += movement * direction
+        game_start_button.x += movement * direction
     FULL_MENU.x += movement * direction
-    back_from_credits.x += movement * direction
-    play_button.x += movement * direction
-    credits_button.x += + movement * direction
-    debug_button.x += movement * direction
-    back_from_play.x += movement * direction
-    difficulty_display.x += movement * direction
-    current_difficulty_display.x += movement * direction
-    easy_difficulty_icon.x += movement * direction
-    medium_difficulty_icon.x += movement * direction
-    hard_difficulty_icon.x += movement * direction
-    game_start_button.x += movement + direction
 
 
 def update():
@@ -309,6 +306,7 @@ def update():
         HARD_DIFFICULTY_ICON_DEFAULT.pos = hard_difficulty_icon.pos
         GAME_START_BUTTON_DEFAULT.pos = game_start_button.pos
         GAME_START_BUTTON_HOVER.pos = game_start_button.pos
+        GAME_START_BUTTON_UNSELECTABLE.pos = game_start_button.pos
         if difficulty == 1:
             current_difficulty_display = EASY_DIFFICULTY_DISPLAY
             easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
@@ -320,218 +318,243 @@ def update():
             hard_difficulty_icon = HARD_DIFFICULTY_ICON_SELECT
 
 
+def prepare_game():
+    global FULL_MENU
+    global game_start, current_screen, SCREEN_X
+    current_screen = 3
+    
+    
+
 def on_mouse_move(pos):
     global debug
     global back_from_credits, play_button
     global credits_button, debug_button, back_from_play
     global difficulty, easy_difficulty_icon
     global medium_difficulty_icon, hard_difficulty_icon
-    if current_screen == 0:
-        if (
-            pos[0] >= back_from_credits_area[0] and
-            pos[0] <= back_from_credits_area[1] and
-            pos[1] >= back_from_credits_area[2] and
-            pos[1] <= back_from_credits_area[3]
-            ):
-            if debug:
-                print("back to home page")
-            back_from_credits = BACK_FROM_CREDITS_HOVER
-        else:
-            back_from_credits = BACK_FROM_CREDITS_DEFAULT
-    if current_screen == 1:
-        if (
-            pos[0] >= play_button_area[0] and
-            pos[0] <= play_button_area[1] and
-            pos[1] >= play_button_area[2] and
-            pos[1] <= play_button_area[3]
-            ):
-            if debug:
-                print("hover play buton")
-            play_button = PLAY_BUTTON_HOVER
-        else:
-            play_button = PLAY_BUTTON_DEFAULT
-        if (
-            pos[0] >= credits_button_area[0] and
-            pos[0] <= credits_button_area[1] and
-            pos[1] >= credits_button_area[2] and
-            pos[1] <= credits_button_area[3]
-            ):
-            if debug:
-                print("You are hovering the credits button")
-            credits_button = CREDITS_BUTTON_HOVER
-        else:
-            credits_button = CREDITS_BUTTON_DEFAULT
-        if (
-            pos[0] >= debug_button_area[0] and
-            pos[0] <= debug_button_area[1] and
-            pos[1] >= debug_button_area[2] and
-            pos[1] <= debug_button_area[3]
-            ):
-            if debug == True:
-                print("hover debug buton")
-                debug_button = DEBUG_BUTTON_ON_HOVER
-            if debug == False:
-                debug_button = DEBUG_BUTTON_OFF_HOVER
-        else:
-            if debug:
-                debug_button = DEBUG_BUTTON_ON
+    global game_start_button
+    if game_start == False:
+        if current_screen == 0:
+            if (
+                pos[0] >= back_from_credits_area[0] and
+                pos[0] <= back_from_credits_area[1] and
+                pos[1] >= back_from_credits_area[2] and
+                pos[1] <= back_from_credits_area[3]
+                ):
+                if debug:
+                    print("back to home page")
+                back_from_credits = BACK_FROM_CREDITS_HOVER
             else:
-                debug_button = DEBUG_BUTTON_OFF
-    if current_screen == 2:
-        if (
-            pos[0] >= back_from_play_area[0] and
-            pos[0] <= back_from_play_area[1] and
-            pos[1] >= back_from_play_area[2] and
-            pos[1] <= back_from_play_area[3]
-            ):
-            if debug == True:
-                print("Home button")
-            back_from_play = BACK_FROM_PLAY_HOVER
-        else:
-            back_from_play = BACK_FROM_PLAY_DEFAULT
-        if (
-            pos[0] >= easy_difficulty_icon_area[0] and
-            pos[0] <= easy_difficulty_icon_area[1] and
-            pos[1] >= easy_difficulty_icon_area[2] and
-            pos[1] <= easy_difficulty_icon_area[3] and
-            difficulty != 1
-            ):
-            if debug == True:
-                print("easy difficulty")
-                print(easy_difficulty_icon.x, pos[0])
-            easy_difficulty_icon = EASY_DIFFICULTY_ICON_HOVER
-        elif difficulty != 1:
-            easy_difficulty_icon = EASY_DIFFICULTY_ICON_DEFAULT
-        if (
-            pos[0] >= medium_difficulty_icon_area[0] and
-            pos[0] <= medium_difficulty_icon_area[1] and
-            pos[1] >= medium_difficulty_icon_area[2] and
-            pos[1] <= medium_difficulty_icon_area[3] and
-            difficulty != 2
-            ):
-            if debug == True:
-                print("medium difficulty")
-            medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_HOVER
-        elif difficulty != 2:
-            medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_DEFAULT
-        if (
-            pos[0] >= hard_difficulty_icon_area[0] and
-            pos[0] <= hard_difficulty_icon_area[1] and
-            pos[1] >= hard_difficulty_icon_area[2] and
-            pos[1] <= hard_difficulty_icon_area[3] and
-            difficulty != 3
-            ):
-            if debug == True:
-                print("hard difficulty")
-            hard_difficulty_icon = HARD_DIFFICULTY_ICON_HOVER
-        elif difficulty != 3:
-            hard_difficulty_icon = HARD_DIFFICULTY_ICON_DEFAULT
+                back_from_credits = BACK_FROM_CREDITS_DEFAULT
+        if current_screen == 1:
+            if (
+                pos[0] >= play_button_area[0] and
+                pos[0] <= play_button_area[1] and
+                pos[1] >= play_button_area[2] and
+                pos[1] <= play_button_area[3]
+                ):
+                if debug:
+                    print("hover play buton")
+                play_button = PLAY_BUTTON_HOVER
+            else:
+                play_button = PLAY_BUTTON_DEFAULT
+            if (
+                pos[0] >= credits_button_area[0] and
+                pos[0] <= credits_button_area[1] and
+                pos[1] >= credits_button_area[2] and
+                pos[1] <= credits_button_area[3]
+                ):
+                if debug:
+                    print("You are hovering the credits button")
+                credits_button = CREDITS_BUTTON_HOVER
+            else:
+                credits_button = CREDITS_BUTTON_DEFAULT
+            if (
+                pos[0] >= debug_button_area[0] and
+                pos[0] <= debug_button_area[1] and
+                pos[1] >= debug_button_area[2] and
+                pos[1] <= debug_button_area[3]
+                ):
+                if debug == True:
+                    print("hover debug buton")
+                    debug_button = DEBUG_BUTTON_ON_HOVER
+                if debug == False:
+                    debug_button = DEBUG_BUTTON_OFF_HOVER
+            else:
+                if debug:
+                    debug_button = DEBUG_BUTTON_ON
+                else:
+                    debug_button = DEBUG_BUTTON_OFF
+        if current_screen == 2:
+            if (
+                pos[0] >= back_from_play_area[0] and
+                pos[0] <= back_from_play_area[1] and
+                pos[1] >= back_from_play_area[2] and
+                pos[1] <= back_from_play_area[3]
+                ):
+                if debug == True:
+                    print("Home button")
+                back_from_play = BACK_FROM_PLAY_HOVER
+            else:
+                back_from_play = BACK_FROM_PLAY_DEFAULT
+            if (
+                pos[0] >= easy_difficulty_icon_area[0] and
+                pos[0] <= easy_difficulty_icon_area[1] and
+                pos[1] >= easy_difficulty_icon_area[2] and
+                pos[1] <= easy_difficulty_icon_area[3] and
+                difficulty != 1
+                ):
+                if debug == True:
+                    print("easy difficulty")
+                easy_difficulty_icon = EASY_DIFFICULTY_ICON_HOVER
+            elif difficulty != 1:
+                easy_difficulty_icon = EASY_DIFFICULTY_ICON_DEFAULT
+            if (
+                pos[0] >= medium_difficulty_icon_area[0] and
+                pos[0] <= medium_difficulty_icon_area[1] and
+                pos[1] >= medium_difficulty_icon_area[2] and
+                pos[1] <= medium_difficulty_icon_area[3] and
+                difficulty != 2
+                ):
+                if debug == True:
+                    print("medium difficulty")
+                medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_HOVER
+            elif difficulty != 2:
+                medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_DEFAULT
+            if (
+                pos[0] >= hard_difficulty_icon_area[0] and
+                pos[0] <= hard_difficulty_icon_area[1] and
+                pos[1] >= hard_difficulty_icon_area[2] and
+                pos[1] <= hard_difficulty_icon_area[3] and
+                difficulty != 3
+                ):
+                if debug == True:
+                    print("hard difficulty")
+                hard_difficulty_icon = HARD_DIFFICULTY_ICON_HOVER
+            elif difficulty != 3:
+                hard_difficulty_icon = HARD_DIFFICULTY_ICON_DEFAULT
+            if difficulty != 0:
+                if (
+                    pos[0] >= game_start_button_area[0] and
+                    pos[0] <= game_start_button_area[1] and
+                    pos[1] >= game_start_button_area[2] and
+                    pos[1] <= game_start_button_area[3]
+                    ):
+                    if debug:
+                        print("Hovering start button")
+                    game_start_button = GAME_START_BUTTON_HOVER
+                else:
+                    game_start_button = GAME_START_BUTTON_DEFAULT
 
 
 def on_mouse_down(pos, button):
     global debug, debug_button
     global current_screen, difficulty
     global easy_difficulty_icon
-    if current_screen == 0:
-        if (
-            pos[0] >= back_from_credits_area[0] and
-            pos[0] <= back_from_credits_area[1] and
-            pos[1] >= back_from_credits_area[2] and
-            pos[1] <= back_from_credits_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("back to home page")
-            current_screen = 1
-    if current_screen == 1:
-        if (
-            pos[0] >= play_button_area[0] and
-            pos[0] <= play_button_area[1] and
-            pos[1] >= play_button_area[2] and
-            pos[1] <= play_button_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("Congrats, you pressed the PLAY button.")
-            current_screen = 2
-        if (
-            pos[0] >= credits_button_area[0] and
-            pos[0] <= credits_button_area[1] and
-            pos[1] >= credits_button_area[2] and
-            pos[1] <= credits_button_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("Congrats, you pressed the CREDITS button.")
-            current_screen = 0
-        if (
-            pos[0] >= debug_button_area[0] and
-            pos[0] <= debug_button_area[1] and
-            pos[1] >= debug_button_area[2] and
-            pos[1] <= debug_button_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("DEBUG is off now.")
-                debug_button = DEBUG_BUTTON_OFF
-                debug = False
-            elif debug == False:
-                print("DEBUG is on now.")
-                debug_button = DEBUG_BUTTON_ON
-                debug = True
-    if current_screen == 2:
-        if (
-            pos[0] >= back_from_play_area[0] and
-            pos[0] <= back_from_play_area[1] and
-            pos[1] >= back_from_play_area[2] and
-            pos[1] <= back_from_play_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("back to home page")
-            current_screen = 1
-        if difficulty != 1:
+    if game_start == False:
+        if current_screen == 0:
             if (
-                pos[0] >= easy_difficulty_icon_area[0] and
-                pos[0] <= easy_difficulty_icon_area[1] and
-                pos[1] >= easy_difficulty_icon_area[2] and
-                pos[1] <= easy_difficulty_icon_area[3] and
+                pos[0] >= back_from_credits_area[0] and
+                pos[0] <= back_from_credits_area[1] and
+                pos[1] >= back_from_credits_area[2] and
+                pos[1] <= back_from_credits_area[3] and
                 mouse.LEFT == button
                 ):
                 if debug == True:
-                    print("easy difficulty pressed")
-                easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
-                difficulty = 1
-        if difficulty != 2:
+                    print("back to home page")
+                current_screen = 1
+        if current_screen == 1:
             if (
-                pos[0] >= medium_difficulty_icon_area[0] and
-                pos[0] <= medium_difficulty_icon_area[1] and
-                pos[1] >= medium_difficulty_icon_area[2] and
-                pos[1] <= medium_difficulty_icon_area[3] and
+                pos[0] >= play_button_area[0] and
+                pos[0] <= play_button_area[1] and
+                pos[1] >= play_button_area[2] and
+                pos[1] <= play_button_area[3] and
                 mouse.LEFT == button
                 ):
                 if debug == True:
-                    print("medium difficulty pressed")
-                medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_SELECT
-                difficulty = 2
-        if difficulty != 3:
+                    print("Congrats, you pressed the PLAY button.")
+                current_screen = 2
             if (
-                pos[0] >= hard_difficulty_icon_area[0] and
-                pos[0] <= hard_difficulty_icon_area[1] and
-                pos[1] >= hard_difficulty_icon_area[2] and
-                pos[1] <= hard_difficulty_icon_area[3] and
+                pos[0] >= credits_button_area[0] and
+                pos[0] <= credits_button_area[1] and
+                pos[1] >= credits_button_area[2] and
+                pos[1] <= credits_button_area[3] and
                 mouse.LEFT == button
                 ):
                 if debug == True:
-                    print("hard difficulty pressed")
-                hard_difficulty_icon = HARD_DIFFICULTY_ICON_SELECT
-                difficulty = 3
-
-
-def prepare_game():
-    time.sleep(.2)
-    transition = TRANSITION_FRAMES[i]
-    
+                    print("Congrats, you pressed the CREDITS button.")
+                current_screen = 0
+            if (
+                pos[0] >= debug_button_area[0] and
+                pos[0] <= debug_button_area[1] and
+                pos[1] >= debug_button_area[2] and
+                pos[1] <= debug_button_area[3] and
+                mouse.LEFT == button
+                ):
+                if debug == True:
+                    print("DEBUG is off now.")
+                    debug_button = DEBUG_BUTTON_OFF
+                    debug = False
+                elif debug == False:
+                    print("DEBUG is on now.")
+                    debug_button = DEBUG_BUTTON_ON
+                    debug = True
+        if current_screen == 2:
+            if (
+                pos[0] >= back_from_play_area[0] and
+                pos[0] <= back_from_play_area[1] and
+                pos[1] >= back_from_play_area[2] and
+                pos[1] <= back_from_play_area[3] and
+                mouse.LEFT == button
+                ):
+                if debug == True:
+                    print("back to home page")
+                current_screen = 1
+            if difficulty != 1:
+                if (
+                    pos[0] >= easy_difficulty_icon_area[0] and
+                    pos[0] <= easy_difficulty_icon_area[1] and
+                    pos[1] >= easy_difficulty_icon_area[2] and
+                    pos[1] <= easy_difficulty_icon_area[3] and
+                    mouse.LEFT == button
+                    ):
+                    if debug == True:
+                        print("easy difficulty pressed")
+                    easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
+                    difficulty = 1
+            if difficulty != 2:
+                if (
+                    pos[0] >= medium_difficulty_icon_area[0] and
+                    pos[0] <= medium_difficulty_icon_area[1] and
+                    pos[1] >= medium_difficulty_icon_area[2] and
+                    pos[1] <= medium_difficulty_icon_area[3] and
+                    mouse.LEFT == button
+                    ):
+                    if debug == True:
+                        print("medium difficulty pressed")
+                    medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_SELECT
+                    difficulty = 2
+            if difficulty != 3:
+                if (
+                    pos[0] >= hard_difficulty_icon_area[0] and
+                    pos[0] <= hard_difficulty_icon_area[1] and
+                    pos[1] >= hard_difficulty_icon_area[2] and
+                    pos[1] <= hard_difficulty_icon_area[3] and
+                    mouse.LEFT == button
+                    ):
+                    if debug == True:
+                        print("hard difficulty pressed")
+                    hard_difficulty_icon = HARD_DIFFICULTY_ICON_SELECT
+                    difficulty = 3
+            if difficulty != 0:
+                if (
+                    pos[0] >= game_start_button_area[0] and
+                    pos[0] <= game_start_button_area[1] and
+                    pos[1] >= game_start_button_area[2] and
+                    pos[1] <= game_start_button_area[3]
+                    ):
+                    if debug:
+                        print("starting game")
+                    prepare_game()
 
 
 def draw(): # Draw all the 
@@ -546,7 +569,7 @@ def draw(): # Draw all the
     easy_difficulty_icon.draw()
     medium_difficulty_icon.draw()
     hard_difficulty_icon.draw()
-    transition.draw()
-
+    game_start_button.draw()
+    
 
 pgzrun.go() # This must be at the end of the code for it to run
