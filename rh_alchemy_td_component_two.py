@@ -1,6 +1,5 @@
 import pgzrun
 import random
-import time
 """
 COMPONENT ONE UPDATES ON FEEDBACK
 
@@ -11,7 +10,11 @@ WIDTH = 1080
 HEIGHT = 540
 
 #This lets the screen move to designated points of each screen
-SCREEN_X = [2160, 1080, 0, -1080]
+SCREEN_X = [3240, 2160, 1080, -2160]
+
+TOWERS_STATS_DICT = {
+    "": []
+    }
 
 direction = 0
 
@@ -158,6 +161,11 @@ game_start_button_area = [
     game_start_button.y + (MENU_BUTTON_HEIGHT / 2)
 ]
 
+game_bar = Actor("test_bart.png")
+game_bar.x = 4600
+game_bar.y = 100
+
+
 
 # number values for difficulties being, in order:
 # none, easy, medium and hard
@@ -175,6 +183,7 @@ def move_all(movement, direction):
     global back_from_play, difficulty_display, current_difficulty_display
     global easy_difficulty_icon, medium_difficulty_icon, hard_difficulty_icon
     global game_start_button, transition
+    global game_bar
     if game_start == False:
         back_from_credits.x += movement * direction
         play_button.x += movement * direction
@@ -188,6 +197,7 @@ def move_all(movement, direction):
         hard_difficulty_icon.x += movement * direction
         game_start_button.x += movement * direction
     FULL_MENU.x += movement * direction
+    game_bar.x += movement * direction
 
 
 def update():
@@ -203,9 +213,9 @@ def update():
     if game_start == False:
         if FULL_MENU.x !=- SCREEN_X[current_screen]:
             if FULL_MENU.x >= SCREEN_X[current_screen]:
-                direction = -1
+                direction = -1 # To the right
             else:
-                direction = 1
+                direction = 1 # To the left
             distance = FULL_MENU.x - SCREEN_X[current_screen]
             if distance < 0:
                 distance *= -1
@@ -225,6 +235,8 @@ def update():
                 move = 1
             if distance != 0:
                 move_all(move, direction)
+        if debug:
+            print(distance)
         back_from_credits_area = [
             back_from_credits.x - (UI_BUTTON_SIDE / 2),
             back_from_credits.x + (UI_BUTTON_SIDE / 2),
@@ -557,7 +569,8 @@ def on_mouse_down(pos, button):
                     prepare_game()
 
 
-def draw(): # Draw all the 
+def draw(): # Draw all the
+    game_bar.draw()
     FULL_MENU.draw()
     back_from_credits.draw()
     play_button.draw()
