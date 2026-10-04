@@ -200,6 +200,7 @@ def move_all(movement, direction):
     game_bar.x += movement * direction
 
 
+
 def update():
     global back_from_credits_area
     global play_button_area
