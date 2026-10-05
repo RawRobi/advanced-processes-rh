@@ -1,7 +1,7 @@
 import pgzrun
 import random
 """
-COMPONENT ONE UPDATES ON FEEDBACK
+COMPONENT TWO UPDATING ON FEEDBACK
 
 All images to be imported need to be to a scale of 3x
 """
@@ -259,7 +259,6 @@ def update():
         if distance != 0:
             move_all(move, direction)
         # break to seperate the two
-        print(game_bar.x, bar_state)
     if current_screen == 3 and FULL_MENU.x == SCREEN_X[current_screen] and game_bar.x != BAR_POSITIONS[bar_state]:
         if game_bar.x >= BAR_POSITIONS[bar_state]:
             direction = -1 # To the right
