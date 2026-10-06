@@ -166,27 +166,45 @@ game_start_button_area = [
     game_start_button.x + (MENU_BUTTON_WIDTH / 2),
     game_start_button.y - (MENU_BUTTON_HEIGHT / 2),
     game_start_button.y + (MENU_BUTTON_HEIGHT / 2)
-]
+    ]
 
-game_bar = Actor("test_bart.png")
-game_bar.x = 5344
-game_bar.y = 90
-bar_state = 0 #left being 0, right being 1
-BAR_POSITIONS = [1024, 42]
+drop_down_ui = Actor("drop_down_ui.png")
+DROP_DOWN_STATES = [270, -60]
+drop_down_state = 1 # 0 being shown, 1 being hidden
+drop_down_ui.x = 4860
+drop_down_ui.y = DROP_DOWN_STATES[drop_down_state]
 
-BAR_SWITCHER_LEFT = Actor("change_bar_button_left.png")
-BAR_SWITCHER_RIGHT = Actor("change_bar_button_right.png")
-bar_switcher = BAR_SWITCHER_LEFT
-bar_switcher.x = 5260
-bar_switcher.y = 240
-bar_switcher_area = [
-    bar_switcher.x - 75,
-    bar_switcher.x + 75,
-    bar_switcher.y - 45,
-    bar_switcher.y + 45
-]
+DROP_DOWN_BUTTON_UP_DEFAULT = Actor("button_up.png")
+DROP_DOWN_BUTTON_UP_HOVER = Actor("button_up_selected.png")
+DROP_DOWN_BUTTON_DOWN_DEFAULT = Actor("button_down.png")
+DROP_DOWN_BUTTON_DOWN_HOVER = Actor("button_down_selected.png")
+drop_down_button = DROP_DOWN_BUTTON_UP_DEFAULT
+drop_down_button.x = drop_down_ui.x
+drop_down_button.y = drop_down_ui.y + 120
+drop_down_button_area = [
+    drop_down_button.x - 48,
+    drop_down_button.x + 48,
+    drop_down_button.y - 48,
+    drop_down_button.y + 48
+    ]
 
+game_bar = Actor("game_bar.png")
+GAME_BAR_STATES = [18, 1068]
+game_bar_state = 0
+game_bar.x = 4860
+game_bar.y = drop_down_ui.y - 120
 
+GAME_BAR_SWITCHER_LEFT = Actor("bar_switcher_left.png")
+GAME_BAR_SWITCHER_RIGHT = Actor("bar_switcher_right.png")
+game_bar_switcher = GAME_BAR_SWITCHER_LEFT
+game_bar_switcher.x = 5240
+game_bar_switcher.y = -60
+game_bar_switcher_area = [
+    game_bar_switcher.x - 96,
+    game_bar_switcher.x + 96,
+    game_bar_switcher.y - 48,
+    game_bar_switcher.y + 48
+    ]
 
 # number values for difficulties being, in order:
 # none, easy, medium and hard
@@ -203,8 +221,8 @@ def move_all(movement, direction):
     global play_button, credits_button, debug_button
     global back_from_play, difficulty_display, current_difficulty_display
     global easy_difficulty_icon, medium_difficulty_icon, hard_difficulty_icon
-    global game_start_button
-    global game_bar, bar_switcher
+    global game_start_button, game_bar
+    global drop_down_ui, drop_down_button
     back_from_credits.x += movement * direction
     play_button.x += movement * direction
     credits_button.x += + movement * direction
@@ -217,8 +235,10 @@ def move_all(movement, direction):
     hard_difficulty_icon.x += movement * direction
     game_start_button.x += movement * direction
     FULL_MENU.x += movement * direction
+    drop_down_ui.x += movement * direction
+    drop_down_button.x += movement * direction
     game_bar.x += movement * direction
-    bar_switcher.x += movement * direction
+    game_bar_switcher.x += movement * direction
     
 
 
@@ -232,8 +252,9 @@ def update():
     global easy_difficulty_icon_area, easy_difficulty_icon
     global medium_difficulty_icon_area, medium_difficulty_icon
     global hard_difficulty_icon_area, hard_difficulty_icon
-    global game_start_button_area, bar_switcher, bar_switcher_area
-    global game_bar, bar_state
+    global game_start_button_area
+    global drop_down_ui, drop_down_button_area, game_bar
+    global game_bar_switcher_area, game_bar_switcher
     if FULL_MENU.x != SCREEN_X[current_screen]:
         if FULL_MENU.x >= SCREEN_X[current_screen]:
             direction = -1 # To the right
@@ -258,13 +279,49 @@ def update():
             move = 1
         if distance != 0:
             move_all(move, direction)
-        # break to seperate the two
-    if current_screen == 3 and FULL_MENU.x == SCREEN_X[current_screen] and game_bar.x != BAR_POSITIONS[bar_state]:
-        if game_bar.x >= BAR_POSITIONS[bar_state]:
+    # comment to seperate the moving functions
+    if (
+        current_screen == 3 and
+        FULL_MENU.x == SCREEN_X[current_screen] and
+        drop_down_ui.y != DROP_DOWN_STATES[drop_down_state]
+        ):
+        if drop_down_ui.y >= DROP_DOWN_STATES[drop_down_state]:
             direction = -1 # To the right
         else:
             direction = 1 # To the left            
-        distance = game_bar.x - BAR_POSITIONS[bar_state]
+        distance = drop_down_ui.y - DROP_DOWN_STATES[drop_down_state]
+        if distance < 0:
+            distance *= -1
+        if distance >= 800:
+            move = 100
+        elif distance >= 600:
+            move = 80
+        elif distance >= 400:
+            move = 40
+        elif distance >= 200:
+            move = 20
+        elif distance >= 100:
+            move = 10
+        elif distance >= 9:
+            move = 5
+        else:
+            move = 1
+        if distance != 0:
+            drop_down_ui.y += move * direction
+            drop_down_button.y += move * direction
+            game_bar_switcher.y += move * direction
+            game_bar.y += move * direction
+    # comment to seperate the functions
+    if (
+        current_screen == 3 and
+        FULL_MENU.x == SCREEN_X[current_screen] and
+        game_bar.x != GAME_BAR_STATES[game_bar_state]
+        ):
+        if game_bar.x >= GAME_BAR_STATES[game_bar_state]:
+            direction = -1 # To the right
+        else:
+            direction = 1 # To the left            
+        distance = game_bar.x - GAME_BAR_STATES[game_bar_state]
         if distance < 0:
             distance *= -1
         if distance >= 800:
@@ -337,11 +394,17 @@ def update():
         game_start_button.y - (MENU_BUTTON_HEIGHT / 2),
         game_start_button.y + (MENU_BUTTON_HEIGHT / 2)
     ]
-    bar_switcher_area = [
-        bar_switcher.x - 75,
-        bar_switcher.x + 75,
-        bar_switcher.y - 45,
-        bar_switcher.y + 45
+    drop_down_button_area = [
+        drop_down_button.x - 48,
+        drop_down_button.x + 48,
+        drop_down_button.y - 48,
+        drop_down_button.y + 48
+    ]
+    game_bar_switcher_area = [
+        game_bar_switcher.x - 96,
+        game_bar_switcher.x + 96,
+        game_bar_switcher.y - 48,
+        game_bar_switcher.y + 48
     ]
     PLAY_BUTTON_DEFAULT.pos = play_button.pos
     PLAY_BUTTON_HOVER.pos = play_button.pos
@@ -371,6 +434,12 @@ def update():
     GAME_START_BUTTON_DEFAULT.pos = game_start_button.pos
     GAME_START_BUTTON_HOVER.pos = game_start_button.pos
     GAME_START_BUTTON_UNSELECTABLE.pos = game_start_button.pos
+    DROP_DOWN_BUTTON_UP_DEFAULT.pos = drop_down_button.pos
+    DROP_DOWN_BUTTON_UP_HOVER.pos = drop_down_button.pos 
+    DROP_DOWN_BUTTON_DOWN_DEFAULT.pos = drop_down_button.pos
+    DROP_DOWN_BUTTON_DOWN_HOVER.pos = drop_down_button.pos
+    GAME_BAR_SWITCHER_LEFT.pos = game_bar_switcher.pos
+    GAME_BAR_SWITCHER_RIGHT.pos = game_bar_switcher.pos
     if difficulty == 1:
         current_difficulty_display = EASY_DIFFICULTY_DISPLAY
         easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
@@ -380,12 +449,10 @@ def update():
     elif difficulty == 3:
         current_difficulty_display = HARD_DIFFICULTY_DISPLAY
         hard_difficulty_icon = HARD_DIFFICULTY_ICON_SELECT
-    BAR_SWITCHER_LEFT.pos = bar_switcher.pos
-    BAR_SWITCHER_RIGHT.pos = bar_switcher.pos
-    if bar_state == 0:
-        bar_switcher = BAR_SWITCHER_LEFT
+    if game_bar_state == 1:
+        game_bar_switcher = GAME_BAR_SWITCHER_RIGHT
     else:
-        bar_switcher = BAR_SWITCHER_RIGHT
+        game_bar_switcher = GAME_BAR_SWITCHER_LEFT
 
 
 def prepare_game():
@@ -401,7 +468,7 @@ def on_mouse_move(pos):
     global credits_button, debug_button, back_from_play
     global difficulty, easy_difficulty_icon
     global medium_difficulty_icon, hard_difficulty_icon
-    global game_start_button
+    global game_start_button, drop_down_button
     if game_start == False:
         if current_screen == 0:
             if (
@@ -514,13 +581,29 @@ def on_mouse_move(pos):
                     game_start_button = GAME_START_BUTTON_HOVER
                 else:
                     game_start_button = GAME_START_BUTTON_DEFAULT
+        if current_screen == 3:
+            if (
+                    pos[0] >= drop_down_button_area[0] and
+                    pos[0] <= drop_down_button_area[1] and
+                    pos[1] >= drop_down_button_area[2] and
+                    pos[1] <= drop_down_button_area[3]
+                    ):
+                if drop_down_state == 1: # hidden, so the button faces down
+                    drop_down_button = DROP_DOWN_BUTTON_DOWN_HOVER
+                else:
+                    drop_down_button = DROP_DOWN_BUTTON_UP_HOVER
+            else:
+                if drop_down_state == 1:
+                    drop_down_button = DROP_DOWN_BUTTON_DOWN_DEFAULT
+                else:
+                    drop_down_button = DROP_DOWN_BUTTON_UP_DEFAULT
 
 
 def on_mouse_down(pos, button):
     global debug, debug_button
     global current_screen, difficulty
     global easy_difficulty_icon, medium_difficulty_icon
-    global hard_difficulty_icon, bar_state
+    global hard_difficulty_icon, drop_down_state, game_bar_state
     if game_start == False:
         if current_screen == 0:
             if (
@@ -628,26 +711,31 @@ def on_mouse_down(pos, button):
                         print("starting game")
                     prepare_game()
         if current_screen == 3:
-            if (
-                pos[0] >= bar_switcher_area[0] and
-                pos[0] <= bar_switcher_area[1] and
-                pos[1] >= bar_switcher_area[2] and
-                pos[1] <= bar_switcher_area[3] and
-                mouse.LEFT == button
-                ):
-                if debug:
-                    print("switch")
-                if bar_state == 0:
-                    bar_state = 1
-                else:
-                    bar_state = 0
-                    
+            if button == mouse.LEFT:
+                if (
+                    pos[0] >= drop_down_button_area[0] and
+                    pos[0] <= drop_down_button_area[1] and
+                    pos[1] >= drop_down_button_area[2] and
+                    pos[1] <= drop_down_button_area[3]
+                    ):
+                    if drop_down_state == 0:
+                        drop_down_state = 1
+                    else:
+                        drop_down_state = 0
+                if (
+                    pos[0] >= game_bar_switcher_area[0] and
+                    pos[0] <= game_bar_switcher_area[1] and
+                    pos[1] >= game_bar_switcher_area[2] and
+                    pos[1] <= game_bar_switcher_area[3]
+                    ):
+                    if game_bar_state == 0:
+                        game_bar_state = 1
+                    else:
+                        game_bar_state = 0
 
 
 def draw(): # Draw all the
-    game_bar.draw()
     FULL_MENU.draw()
-    bar_switcher.draw()
     back_from_credits.draw()
     play_button.draw()
     credits_button.draw()
@@ -659,6 +747,10 @@ def draw(): # Draw all the
     medium_difficulty_icon.draw()
     hard_difficulty_icon.draw()
     game_start_button.draw()
+    game_bar.draw()
+    drop_down_ui.draw()
+    game_bar_switcher.draw()
+    drop_down_button.draw()
     
 
 pgzrun.go() # This must be at the end of the code for it to run
