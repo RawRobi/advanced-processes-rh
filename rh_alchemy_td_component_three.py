@@ -1,5 +1,6 @@
 import pgzrun
 import random
+import math
 """
 COMPONENT TWO UPDATING ON FEEDBACK
 
@@ -12,9 +13,21 @@ HEIGHT = 540
 #This lets the screen move to designated points of each screen
 SCREEN_X = [3240.0, 2160.0, 1080.0, -2160.0]
 
-TOWERS_STATS_DICT = {
-    "": []
-    }
+balance = 150
+
+# any time is done in frames
+TOWERS_STATS = [
+# Example:
+# [actor(sprite) left, actor right, name, level, cost, base damage,
+#    base cooldown, base range, pierce, base upgrade price,
+#    base upgrade mult]
+["tower_archer_left.png", "tower_archer_right.png",
+ "archer", 1, 100, 3, 45, 150, 2, 50, 1.5],
+["tower_wizard_left.png", "tower_wizard_right.png",
+ "wizard", 1, 250, 7, 60, 200, 1, 75, 2],
+["tower_imp_left.png", "tower_imp_right.png",
+ "imp", 1, 200, 1, 15, 75, 2, 50, 1.25]
+    ]
 
 direction = 0
 
@@ -121,7 +134,7 @@ EASY_DIFFICULTY_ICON_HOVER = Actor("difficulty_easy_icon_hover.png")
 EASY_DIFFICULTY_ICON_SELECT = Actor("difficulty_easy_icon_select.png")
 easy_difficulty_icon = EASY_DIFFICULTY_ICON_DEFAULT
 easy_difficulty_icon.x = 1220
-easy_difficulty_icon.y = 320
+easy_difficulty_icon.y = 360
 easy_difficulty_icon_area = [
     easy_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
     easy_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
@@ -133,8 +146,8 @@ MEDIUM_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_medium_icon.png")
 MEDIUM_DIFFICULTY_ICON_HOVER = Actor("difficulty_medium_icon_hover.png")
 MEDIUM_DIFFICULTY_ICON_SELECT = Actor("difficulty_medium_icon_select.png")
 medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_DEFAULT
-medium_difficulty_icon.x = 1520
-medium_difficulty_icon.y = 280
+medium_difficulty_icon.x = 1660
+medium_difficulty_icon.y = 270
 medium_difficulty_icon_area = [
     medium_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
     medium_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
@@ -147,7 +160,7 @@ HARD_DIFFICULTY_ICON_HOVER = Actor("difficulty_hard_icon_hover.png")
 HARD_DIFFICULTY_ICON_SELECT = Actor("difficulty_hard_icon_select.png")
 hard_difficulty_icon = HARD_DIFFICULTY_ICON_DEFAULT
 hard_difficulty_icon.x = 1950
-hard_difficulty_icon.y = 310
+hard_difficulty_icon.y = 330
 hard_difficulty_icon_area = [
     hard_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
     hard_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
@@ -206,6 +219,28 @@ game_bar_switcher_area = [
     game_bar_switcher.y + 48
     ]
 
+# tower buttons
+
+archer_button = Actor("archer_tower_button.png")
+
+wizard_button = Actor("wizard_tower_button.png")
+
+imp_button = Actor("imp_tower_button.png")
+
+# towers
+
+tower_slot_one = Actor("tower_empty.png")
+tower_slot_one.x = 4500
+tower_slot_one.y = 390
+
+tower_slot_two = Actor("tower_empty.png")
+tower_slot_two.x = 4860
+tower_slot_two.y = 320
+
+tower_slot_three = Actor("tower_empty.png")
+tower_slot_three.x = 5220
+tower_slot_three.y = 360
+
 # number values for difficulties being, in order:
 # none, easy, medium and hard
 difficulty = 0
@@ -223,6 +258,7 @@ def move_all(movement, direction):
     global easy_difficulty_icon, medium_difficulty_icon, hard_difficulty_icon
     global game_start_button, game_bar
     global drop_down_ui, drop_down_button
+    global tower_slot_one, tower_slot_two, tower_slot_three
     back_from_credits.x += movement * direction
     play_button.x += movement * direction
     credits_button.x += + movement * direction
@@ -239,8 +275,9 @@ def move_all(movement, direction):
     drop_down_button.x += movement * direction
     game_bar.x += movement * direction
     game_bar_switcher.x += movement * direction
-    
-
+    tower_slot_one.x += movement * direction
+    tower_slot_two.x += movement * direction
+    tower_slot_three.x += movement * direction
 
 
 def update():
@@ -255,6 +292,7 @@ def update():
     global game_start_button_area
     global drop_down_ui, drop_down_button_area, game_bar
     global game_bar_switcher_area, game_bar_switcher
+    global archer_button
     if FULL_MENU.x != SCREEN_X[current_screen]:
         if FULL_MENU.x >= SCREEN_X[current_screen]:
             direction = -1 # To the right
@@ -406,6 +444,8 @@ def update():
         game_bar_switcher.y - 48,
         game_bar_switcher.y + 48
     ]
+    archer_button.x = game_bar.x + 180
+    archer_button.y = game_bar.y
     PLAY_BUTTON_DEFAULT.pos = play_button.pos
     PLAY_BUTTON_HOVER.pos = play_button.pos
     BACK_FROM_CREDITS_DEFAULT.pos = back_from_credits.pos
@@ -746,11 +786,18 @@ def draw(): # Draw all the
     easy_difficulty_icon.draw()
     medium_difficulty_icon.draw()
     hard_difficulty_icon.draw()
+    tower_slot_one.draw()
+    tower_slot_two.draw()
+    tower_slot_three.draw()
     game_start_button.draw()
     game_bar.draw()
+    archer_button.draw()
+    wizard_button.draw()
+    imp_button.draw()
     drop_down_ui.draw()
     game_bar_switcher.draw()
     drop_down_button.draw()
+    
     
 
 pgzrun.go() # This must be at the end of the code for it to run
