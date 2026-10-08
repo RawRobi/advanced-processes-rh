@@ -13,20 +13,56 @@ HEIGHT = 540
 #This lets the screen move to designated points of each screen
 SCREEN_X = [3240.0, 2160.0, 1080.0, -2160.0]
 
-balance = 150
+balance = 150000
 
 # any time is done in frames
 TOWERS_STATS = [
 # Example:
-# [actor(sprite) left, actor right, name, level, cost, base damage,
-#    base cooldown, base range, pierce, base upgrade price,
-#    base upgrade mult]
-["tower_archer_left.png", "tower_archer_right.png",
- "archer", 1, 100, 3, 45, 150, 2, 50, 1.5],
-["tower_wizard_left.png", "tower_wizard_right.png",
- "wizard", 1, 250, 7, 60, 200, 1, 75, 2],
-["tower_imp_left.png", "tower_imp_right.png",
- "imp", 1, 200, 1, 15, 75, 2, 50, 1.25]
+#   [tower image, base damage, base cooldown, base range, pierce]
+["empty.png"],
+["archer.png", 100, 3, 45, 150, 2],
+["wizard.png", 250, 7, 60, 200, 1],
+["imp.png", 200, 1, 15, 75, 2]
+    ]
+
+# variables to call for specific stats, which makes the code
+# easier to read
+
+EMPTY = 0
+ARCHER = 1
+WIZARD = 2
+IMP = 3
+
+TOWER_IMAGE = 0
+TOWER_COST = 1
+BASE_DAMAGE = 2
+BASE_COOLDOWN = 3
+BASE_RANGE = 4
+TOWER_PIERCE = 5
+
+# enemys
+
+ENEMY_STATS = [
+# Example:
+# [health, walk speed, dropped cost, initial cooldown, base cooldown]
+    [9, 12, 20, 5 * 60, 1 * 60],
+    [22, 6, 60, 20 * 60, 5 * 60],
+    [6, 24, 45, 45 * 60, .2 * 60]
+    ]
+
+ENEMY_HEALTH = 0
+ENEMY_SPEED = 1
+
+ENEMY_SPRITES = []
+
+SLIME = 0
+ZOMBIE = 1
+ENEMY_IMP = 2
+
+DIFFICULTY_CHANGES = [
+# Example:
+# [overall stat multiplier, over time multiplier, max/min stats]
+    []
     ]
 
 direction = 0
@@ -36,9 +72,6 @@ game_start = False
 FULL_MENU = Actor("full_menu.png")
 FULL_MENU.y = 270
 
-ARCHER = 1
-WIZARD = 2
-IMP = 3
 
 # All of the buttons are set up as the following way
 # The states it can be (e.g. hovered, selected and default) are made
@@ -204,6 +237,15 @@ drop_down_button_area = [
     drop_down_button.y + 48
     ]
 
+# The unselect tower button can share it's main actor with the
+# drop down button
+
+tower_selected_state = 0
+# 0 being no tower is selected, 1 being for a tower is selected.
+
+UNSELECT_TOWER_BUTTON_DEFAULT = Actor("unselect_tower.png")
+UNSELECT_TOWER_BUTTON_HOVER = Actor("unselect_tower_hover.png")
+
 game_bar = Actor("game_bar.png")
 GAME_BAR_STATES = [18, 1068]
 game_bar_state = 0
@@ -222,10 +264,43 @@ game_bar_switcher_area = [
     game_bar_switcher.y + 48
     ]
 
-selected_slot = 0
-slot_selected = False
-
 # tower buttons
+
+TOWER_BUTTON_HEIGHT = 54 * 3
+TOWER_BUTTON_WIDTH = 80 * 3
+
+ARCHER_BUTTON_DEFAULT = Actor("archer_tower_button.png")
+ARCHER_BUTTON_HOVER = Actor("archer_tower_button_hover.png")
+ARCHER_BUTTON_UNSELECTABLE = Actor("archer_tower_button_unselectable.png")
+archer_button = ARCHER_BUTTON_DEFAULT
+archer_button_area = [
+    archer_button.x - (TOWER_BUTTON_WIDTH / 2),
+    archer_button.x + (TOWER_BUTTON_WIDTH / 2),
+    archer_button.y - (TOWER_BUTTON_HEIGHT / 2),
+    archer_button.y + (TOWER_BUTTON_HEIGHT / 2)
+    ]
+
+WIZARD_BUTTON_DEFAULT = Actor("wizard_tower_button.png")
+WIZARD_BUTTON_HOVER = Actor("wizard_tower_button_hover.png")
+WIZARD_BUTTON_UNSELECTABLE = Actor("wizard_tower_button_unselectable.png")
+wizard_button = WIZARD_BUTTON_DEFAULT
+wizard_button_area = [
+    wizard_button.x - (TOWER_BUTTON_WIDTH / 2),
+    wizard_button.x + (TOWER_BUTTON_WIDTH / 2),
+    wizard_button.y - (TOWER_BUTTON_HEIGHT / 2),
+    wizard_button.y + (TOWER_BUTTON_HEIGHT / 2)
+    ]
+
+IMP_BUTTON_DEFAULT = Actor("imp_tower_button.png")
+IMP_BUTTON_HOVER = Actor("imp_tower_button_hover.png")
+IMP_BUTTON_UNSELECTABLE = Actor("imp_tower_button_unselectable.png")
+imp_button = IMP_BUTTON_DEFAULT
+imp_button_area = [
+    imp_button.x - (TOWER_BUTTON_WIDTH / 2),
+    imp_button.x + (TOWER_BUTTON_WIDTH / 2),
+    imp_button.y - (TOWER_BUTTON_HEIGHT / 2),
+    imp_button.y + (TOWER_BUTTON_HEIGHT / 2)
+    ]
 
 # towers
 
@@ -288,35 +363,42 @@ tower_slot_three_area = [
     ]
 tower_slot_three_stats = []
 
-TOWER_SELECTOR_DEFAULT = Actor("opt_two_tower_select.png")
-TOWER_SELECTOR_HIDDEN = Actor("empty.png")
-tower_selector_ui = TOWER_SELECTOR_HIDDEN
-tower_selector_ui.x = -100
-tower_selector_ui.y = -100
-archer_select_ui_area = [
-    tower_selector_ui.x - (47 * 3) - (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.x - (47 * 3) + (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.y - (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.y + (UI_BUTTON_SIDE / 2)
+# game ui
+
+CURRENT_TOWERS = [Actor(TOWERS_STATS[EMPTY][TOWER_IMAGE]),
+                  Actor(TOWERS_STATS[ARCHER][TOWER_IMAGE]),
+                  Actor(TOWERS_STATS[WIZARD][TOWER_IMAGE]),
+                  Actor(TOWERS_STATS[IMP][TOWER_IMAGE])]
+current_tower_value = 0
+current_tower = CURRENT_TOWERS[current_tower_value]
+
+balance_icon = Actor("balance_icon.png")
+balance_icon.x = 5400
+balance_icon.y = drop_down_button.y
+selected_tower = 0
+
+# ability to select a tower and sell it
+
+SELL_SELECT_DEFAULT = Actor("tower_select.png")
+SELL_SELECT_HIDDEN = Actor("empty.png")
+sell_select = SELL_SELECT_HIDDEN
+sell_select.x = 0
+sell_select.y = 0
+sell_select_area = [
+    sell_select.x - (UI_BUTTON_SIDE / 2),
+    sell_select.x + (UI_BUTTON_SIDE / 2),
+    sell_select.y - (30 * 3) - (UI_BUTTON_SIDE / 2),
+    sell_select.y - (30 * 3) + (UI_BUTTON_SIDE / 2),
     ]
-cancel_select_ui_area = [
-    tower_selector_ui.x - (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.x + (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.y + (47 * 3) - (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.y + (47 * 3) + (UI_BUTTON_SIDE / 2)
+cancel_area = [
+    sell_select.x - 18,
+    sell_select.x + 18,
+    sell_select.y - 18,
+    sell_select.y + 18
     ]
-wizard_select_ui_area = [
-    tower_selector_ui.x + (47 * 3) - (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.x + (47 * 3) + (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.y - (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.y + (UI_BUTTON_SIDE / 2)
-    ]
-imp_select_ui_area = [
-    tower_selector_ui.x - (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.x + (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.y - (47 * 3) - (UI_BUTTON_SIDE / 2),
-    tower_selector_ui.y - (47 * 3) + (UI_BUTTON_SIDE / 2)
-    ]
+selling_tower_selected = False
+selling_tower_selected_number = 0
+# 0 being hidden, 1 being shown
 
 # number values for difficulties being, in order:
 # none, easy, medium and hard
@@ -369,11 +451,11 @@ def update():
     global game_start_button_area
     global drop_down_ui, drop_down_button_area, game_bar
     global game_bar_switcher_area, game_bar_switcher
-    global archer_button
-    global archer_select_ui_area, wizard_select_ui_area
-    global cancel_select_ui_area, imp_select_ui_area
+    global archer_button, wizard_button, imp_button
+    global archer_button_area, wizard_button_area, imp_button_area
+    global cancel_tower_button, cancel_tower_button_area
     global tower_slot_one_area, tower_slot_two_area, tower_slot_three_area
-    global TOWER_SELECTOR_DEFAULT, TOWER_SELECTOR_HIDDEN
+    global sell_select_area, cancel_area
     if FULL_MENU.x != SCREEN_X[current_screen]:
         if FULL_MENU.x >= SCREEN_X[current_screen]:
             direction = -1 # To the right
@@ -525,30 +607,30 @@ def update():
         game_bar_switcher.y - 48,
         game_bar_switcher.y + 48
     ]
-    archer_select_ui_area = [
-        tower_selector_ui.x - (47 * 3) - (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.x - (47 * 3) + (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.y - (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.y + (UI_BUTTON_SIDE / 2)
-    ]
-    cancel_select_ui_area = [
-        tower_selector_ui.x - (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.x + (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.y + (47 * 3) - (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.y + (47 * 3) + (UI_BUTTON_SIDE / 2)
-    ]
-    wizard_select_ui_area = [
-        tower_selector_ui.x + (47 * 3) - (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.x + (47 * 3) + (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.y - (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.y + (UI_BUTTON_SIDE / 2)
-    ]
-    imp_select_ui_area = [
-        tower_selector_ui.x - (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.x + (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.y - (47 * 3) - (UI_BUTTON_SIDE / 2),
-        tower_selector_ui.y - (47 * 3) + (UI_BUTTON_SIDE / 2)
-    ]
+    archer_button.x = game_bar.x + 160
+    archer_button.y = game_bar.y
+    wizard_button.x = archer_button.x + 360
+    wizard_button.y = game_bar.y
+    imp_button.x = wizard_button.x + 360
+    imp_button.y = game_bar.y
+    archer_button_area = [
+        archer_button.x - (TOWER_BUTTON_WIDTH / 2),
+        archer_button.x + (TOWER_BUTTON_WIDTH / 2),
+        archer_button.y - (TOWER_BUTTON_HEIGHT / 2),
+        archer_button.y + (TOWER_BUTTON_HEIGHT / 2)
+        ]
+    wizard_button_area = [
+        wizard_button.x - (TOWER_BUTTON_WIDTH / 2),
+        wizard_button.x + (TOWER_BUTTON_WIDTH / 2),
+        wizard_button.y - (TOWER_BUTTON_HEIGHT / 2),
+        wizard_button.y + (TOWER_BUTTON_HEIGHT / 2)
+        ]
+    imp_button_area = [
+        imp_button.x - (TOWER_BUTTON_WIDTH / 2),
+        imp_button.x + (TOWER_BUTTON_WIDTH / 2),
+        imp_button.y - (TOWER_BUTTON_HEIGHT / 2),
+        imp_button.y + (TOWER_BUTTON_HEIGHT / 2)
+        ]
     tower_slot_one_area = [
         tower_slot_one.x - (TOWER_SLOT_SIDE_LENGTH / 2),
         tower_slot_one.x + (TOWER_SLOT_SIDE_LENGTH / 2),
@@ -566,6 +648,18 @@ def update():
         tower_slot_three.x + (TOWER_SLOT_SIDE_LENGTH / 2),
         tower_slot_three.y - (TOWER_SLOT_SIDE_LENGTH / 2),
         tower_slot_three.y + (TOWER_SLOT_SIDE_LENGTH / 2)
+    ]
+    sell_select_area = [
+        sell_select.x - (UI_BUTTON_SIDE / 2),
+        sell_select.x + (UI_BUTTON_SIDE / 2),
+        sell_select.y - (30 * 3) - (UI_BUTTON_SIDE / 2),
+        sell_select.y - (30 * 3) + (UI_BUTTON_SIDE / 2),
+    ]
+    cancel_area = [
+        sell_select.x - 18,
+        sell_select.x + 18,
+        sell_select.y - 18,
+        sell_select.y + 18
     ]
     PLAY_BUTTON_DEFAULT.pos = play_button.pos
     PLAY_BUTTON_HOVER.pos = play_button.pos
@@ -601,6 +695,17 @@ def update():
     DROP_DOWN_BUTTON_DOWN_HOVER.pos = drop_down_button.pos
     GAME_BAR_SWITCHER_LEFT.pos = game_bar_switcher.pos
     GAME_BAR_SWITCHER_RIGHT.pos = game_bar_switcher.pos
+    ARCHER_BUTTON_DEFAULT.pos = archer_button.pos
+    ARCHER_BUTTON_HOVER.pos = archer_button.pos
+    ARCHER_BUTTON_UNSELECTABLE.pos = archer_button.pos
+    WIZARD_BUTTON_DEFAULT.pos = wizard_button.pos
+    WIZARD_BUTTON_HOVER.pos = wizard_button.pos
+    WIZARD_BUTTON_UNSELECTABLE.pos = wizard_button.pos
+    IMP_BUTTON_DEFAULT.pos = imp_button.pos
+    IMP_BUTTON_HOVER.pos = imp_button.pos
+    IMP_BUTTON_UNSELECTABLE.pos = imp_button.pos
+    UNSELECT_TOWER_BUTTON_DEFAULT.pos = drop_down_button.pos
+    UNSELECT_TOWER_BUTTON_HOVER.pos = drop_down_button.pos
     TOWER_SLOT_ONE_EMPTY.pos = tower_slot_one.pos
     TOWER_SLOT_ONE_ARCHER_LEFT.pos = tower_slot_one.pos
     TOWER_SLOT_ONE_ARCHER_RIGHT.pos = tower_slot_one.pos
@@ -631,17 +736,18 @@ def update():
     elif difficulty == 3:
         current_difficulty_display = HARD_DIFFICULTY_DISPLAY
         hard_difficulty_icon = HARD_DIFFICULTY_ICON_SELECT
-    if game_bar_state == 1:
+    if game_bar_state == 0:
         game_bar_switcher = GAME_BAR_SWITCHER_RIGHT
     else:
         game_bar_switcher = GAME_BAR_SWITCHER_LEFT
 
 
 def prepare_game():
-    global FULL_MENU
-    global game_start, current_screen, SCREEN_X
+    global current_screen
     current_screen = 3
-    
+
+def start_game():
+    print("start")
 
 def on_mouse_move(pos):
     global debug
@@ -649,7 +755,8 @@ def on_mouse_move(pos):
     global credits_button, debug_button, back_from_play
     global difficulty, easy_difficulty_icon
     global medium_difficulty_icon, hard_difficulty_icon
-    global game_start_button, drop_down_button
+    global game_start_button, drop_down_button, tower_selected_state
+    global archer_button, wizard_button, imp_button, sell_select_area
     if game_start == False:
         if current_screen == 0:
             if (
@@ -763,80 +870,176 @@ def on_mouse_move(pos):
                 else:
                     game_start_button = GAME_START_BUTTON_DEFAULT
         if current_screen == 3:
+            for tower_actor in CURRENT_TOWERS:
+                tower_actor.pos = pos
             if (
-                    pos[0] >= drop_down_button_area[0] and
-                    pos[0] <= drop_down_button_area[1] and
-                    pos[1] >= drop_down_button_area[2] and
-                    pos[1] <= drop_down_button_area[3]
-                    ):
-                if drop_down_state == 1: # hidden, so the button faces down
-                    drop_down_button = DROP_DOWN_BUTTON_DOWN_HOVER
+                pos[0] >= drop_down_button_area[0] and
+                pos[0] <= drop_down_button_area[1] and
+                pos[1] >= drop_down_button_area[2] and
+                pos[1] <= drop_down_button_area[3]
+                ):
+                if tower_selected_state == 0:
+                    if drop_down_state == 1: # hidden, so the button faces down
+                        drop_down_button = DROP_DOWN_BUTTON_DOWN_HOVER
+                    else:
+                        drop_down_button = DROP_DOWN_BUTTON_UP_HOVER
                 else:
-                    drop_down_button = DROP_DOWN_BUTTON_UP_HOVER
+                    drop_down_button = UNSELECT_TOWER_BUTTON_HOVER
             else:
-                if drop_down_state == 1:
-                    drop_down_button = DROP_DOWN_BUTTON_DOWN_DEFAULT
+                if tower_selected_state == 0:
+                    if drop_down_state == 1:
+                        drop_down_button = DROP_DOWN_BUTTON_DOWN_DEFAULT
+                    else:
+                        drop_down_button = DROP_DOWN_BUTTON_UP_DEFAULT
                 else:
-                    drop_down_button = DROP_DOWN_BUTTON_UP_DEFAULT
+                    drop_down_button = UNSELECT_TOWER_BUTTON_DEFAULT
+            if balance >= TOWERS_STATS[ARCHER][TOWER_COST]:
+                if (
+                    pos[0] >= archer_button_area[0] and
+                    pos[0] <= archer_button_area[1] and
+                    pos[1] >= archer_button_area[2] and
+                    pos[1] <= archer_button_area[3]
+                    ):
+                    archer_button = ARCHER_BUTTON_HOVER
+                else:
+                    archer_button = ARCHER_BUTTON_DEFAULT
+            else:
+                archer_button = ARCHER_BUTTON_UNSELECTABLE
+            if balance >= TOWERS_STATS[WIZARD][TOWER_COST]:
+                if (
+                    pos[0] >= wizard_button_area[0] and
+                    pos[0] <= wizard_button_area[1] and
+                    pos[1] >= wizard_button_area[2] and
+                    pos[1] <= wizard_button_area[3]
+                    ):
+                    wizard_button = WIZARD_BUTTON_HOVER
+                else:
+                    wizard_button = WIZARD_BUTTON_DEFAULT
+            else:
+                wizard_button = WIZARD_BUTTON_UNSELECTABLE
+            if balance >= TOWERS_STATS[IMP][TOWER_COST]:
+                if (
+                    pos[0] >= imp_button_area[0] and
+                    pos[0] <= imp_button_area[1] and
+                    pos[1] >= imp_button_area[2] and
+                    pos[1] <= imp_button_area[3]
+                    ):
+                    imp_button = IMP_BUTTON_HOVER
+                else:
+                    imp_button = IMP_BUTTON_DEFAULT
+            else:
+                imp_button = IMP_BUTTON_UNSELECTABLE
 
 
-def select_slot(slot_number):
+def select_tower(tower):
+    global tower_selected_state, current_tower, drop_down_state
+    global selected_tower
+    current_tower = CURRENT_TOWERS[tower]
+    drop_down_state = 1 #hidden
+    tower_selected_state = 1
+    selected_tower = tower
+
+
+def place_tower(tower, slot):
     global tower_slot_one, tower_slot_two, tower_slot_three
-    global tower_selector_ui
-    global slot_selected, selected_slot, TOWER_SELECTOR_DEFAULT
-    if slot_number == 1:
-        tower_selector_ui.pos = tower_slot_one.pos
-    elif slot_number == 2:
-        tower_selector_ui.pos = tower_slot_two.pos
-    else:
-        tower_selector_ui.pos = tower_slot_three.pos
-    TOWER_SELECTOR_DEFAULT.pos = tower_selector_ui.pos
-    tower_selector_ui = TOWER_SELECTOR_DEFAULT
-    selected_slot = slot_number
-    slot_selected = True
-    print("gskawsgr", tower_slot_one.pos, tower_slot_two.pos, tower_slot_three.pos)
-
-
-def place_tower(slot, tower):
-    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_stats, tower_slot_two_stats
+    global tower_slot_three_stats, tower_selected_state
+    global selected_tower, current_tower
     global tower_slot_one_occupied, tower_slot_two_occupied
-    global tower_slot_three_occupied, tower_selector_ui
-    global slot_selected
-    global ARCHER, WIZARD, IMP
-    tower_selector_ui = TOWER_SELECTOR_HIDDEN
+    global tower_slot_three_occupied, selected_tower
+    global balance
+    for stat in TOWERS_STATS[tower]:
+        if slot == 1:
+            tower_slot_one_stats.append(stat)
+            tower_slot_one_occupied = True
+        elif slot == 2:
+            tower_slot_two_stats.append(stat)
+            tower_slot_two_occupied = True
+        else:
+            tower_slot_three_stats.append(stat)
+            tower_slot_three_occupied = True
     if slot == 1:
-        if tower == ARCHER:
+        if selected_tower == 1:
             tower_slot_one = TOWER_SLOT_ONE_ARCHER_LEFT
-        elif tower == WIZARD:
+        elif selected_tower == 2:
             tower_slot_one = TOWER_SLOT_ONE_WIZARD_LEFT
         else:
             tower_slot_one = TOWER_SLOT_ONE_IMP_LEFT
-        tower_slot_one_occupied = True
-    if slot == 2:
-        if tower == ARCHER:
+    elif slot == 2:
+        if selected_tower == 1:
             tower_slot_two = TOWER_SLOT_TWO_ARCHER_LEFT
-        elif tower == WIZARD:
+        elif selected_tower == 2:
             tower_slot_two = TOWER_SLOT_TWO_WIZARD_LEFT
         else:
-            tower_slot_two = TOWER_SLOT_TWO_IMP_LEFT
-        tower_slot_two_occupied = True
-    if slot == 3:
-        if tower == ARCHER:
+            tower_slot_two = TOWER_SLOT_TWO_IMP_LEFT	
+    else:
+        if selected_tower == 1:
             tower_slot_three = TOWER_SLOT_THREE_ARCHER_LEFT
-        elif tower == WIZARD:
+        elif selected_tower == 2:
             tower_slot_three = TOWER_SLOT_THREE_WIZARD_LEFT
         else:
             tower_slot_three = TOWER_SLOT_THREE_IMP_LEFT
-        tower_slot_three_occupied = True
-    slot_selected = False
+    tower_selected_state = 0
+    balance -= TOWERS_STATS[tower][TOWER_COST]
+    selected_tower = 0
+    current_tower = CURRENT_TOWERS[EMPTY]
 
 
+def select_tower_to_sell(tower_actor, tower_slot):
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_stats, tower_slot_two_stats
+    global tower_slot_three_stats, selling_tower_selected_number
+    global sell_select, selling_tower_selected
+    sell_select.pos = tower_actor.pos
+    SELL_SELECT_DEFAULT.pos = tower_actor.pos
+    sell_select = SELL_SELECT_DEFAULT
+    selling_tower_selected = True
+    selling_tower_selected_number = tower_slot
+    
+
+def cancel_sell():
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_stats, tower_slot_two_stats
+    global tower_slot_three_stats, selling_tower_selected_number
+    global sell_select, selling_tower_selected
+    selling_tower_selected = False
+    sell_select = SELL_SELECT_HIDDEN
+
+
+def sell_tower(tower_slot):
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_stats, tower_slot_two_stats
+    global tower_slot_three_stats, selling_tower_selected_number
+    global sell_select, selling_tower_selected
+    global balance
+    global tower_slot_one_occupied, tower_slot_two_occupied
+    global tower_slot_three_occupied
+    cancel_sell()
+    print(tower_slot)
+    if tower_slot == 1:
+        tower_slot_one = TOWER_SLOT_ONE_EMPTY
+        tower_slot_one_occupied = False
+        balance += tower_slot_one_stats[TOWER_COST]
+        tower_slot_one_stats = []
+    if tower_slot == 2:
+        tower_slot_two = TOWER_SLOT_TWO_EMPTY
+        tower_slot_two_occupied = False
+        balance += tower_slot_two_stats[TOWER_COST]
+        tower_slot_two_stats = []
+    if tower_slot == 3:
+        tower_slot_three = TOWER_SLOT_THREE_EMPTY
+        tower_slot_three_occupied = False
+        balance += tower_slot_three_stats[TOWER_COST]
+        tower_slot_three_stats = []
+
+    
 def on_mouse_down(pos, button):
     global debug, debug_button
     global current_screen, difficulty
     global easy_difficulty_icon, medium_difficulty_icon
     global hard_difficulty_icon, drop_down_state, game_bar_state
-    global tower_selector_ui, slot_selected
+    global current_tower, tower_selected_state
+    global selling_tower_selected_number
     if game_start == False:
         if current_screen == 0:
             if (
@@ -944,18 +1147,22 @@ def on_mouse_down(pos, button):
                         print("starting game")
                     prepare_game()
         if current_screen == 3:
-            print(slot_selected, tower_selector_ui.pos)
             if button == mouse.LEFT:
+                print(selling_tower_selected_number)
                 if (
                     pos[0] >= drop_down_button_area[0] and
                     pos[0] <= drop_down_button_area[1] and
                     pos[1] >= drop_down_button_area[2] and
                     pos[1] <= drop_down_button_area[3]
                     ):
-                    if drop_down_state == 0:
-                        drop_down_state = 1
+                    if tower_selected_state == 0:
+                        if drop_down_state == 0:
+                            drop_down_state = 1
+                        else:
+                            drop_down_state = 0
                     else:
-                        drop_down_state = 0
+                        current_tower = CURRENT_TOWERS[EMPTY]
+                        tower_selected_state = 0
                 if (
                     pos[0] >= game_bar_switcher_area[0] and
                     pos[0] <= game_bar_switcher_area[1] and
@@ -966,7 +1173,31 @@ def on_mouse_down(pos, button):
                         game_bar_state = 1
                     else:
                         game_bar_state = 0
-                if slot_selected == False:
+                if balance >= TOWERS_STATS[ARCHER][TOWER_COST]:
+                    if (
+                        pos[0] >= archer_button_area[0] and
+                        pos[0] <= archer_button_area[1] and
+                        pos[1] >= archer_button_area[2] and
+                        pos[1] <= archer_button_area[3]
+                        ):
+                        select_tower(ARCHER)
+                if balance >= TOWERS_STATS[WIZARD][TOWER_COST]:
+                    if (
+                        pos[0] >= wizard_button_area[0] and
+                        pos[0] <= wizard_button_area[1] and
+                        pos[1] >= wizard_button_area[2] and
+                        pos[1] <= wizard_button_area[3]
+                       ):
+                        select_tower(WIZARD)
+                if balance >= TOWERS_STATS[IMP][TOWER_COST]:
+                    if (
+                        pos[0] >= imp_button_area[0] and
+                        pos[0] <= imp_button_area[1] and
+                        pos[1] >= imp_button_area[2] and
+                        pos[1] <= imp_button_area[3]
+                        ):
+                        select_tower(IMP)
+                if tower_selected_state == 1:
                     if (
                         pos[0] >= tower_slot_one_area[0] and
                         pos[0] <= tower_slot_one_area[1] and
@@ -974,7 +1205,7 @@ def on_mouse_down(pos, button):
                         pos[1] <= tower_slot_one_area[3] and
                         tower_slot_one_occupied == False
                         ):
-                        select_slot(1)
+                        place_tower(selected_tower, 1)
                     if (
                         pos[0] >= tower_slot_two_area[0] and
                         pos[0] <= tower_slot_two_area[1] and
@@ -982,7 +1213,7 @@ def on_mouse_down(pos, button):
                         pos[1] <= tower_slot_two_area[3] and
                         tower_slot_two_occupied == False
                         ):
-                        select_slot(2)
+                        place_tower(selected_tower, 2)
                     if (
                         pos[0] >= tower_slot_three_area[0] and
                         pos[0] <= tower_slot_three_area[1] and
@@ -990,37 +1221,48 @@ def on_mouse_down(pos, button):
                         pos[1] <= tower_slot_three_area[3] and
                         tower_slot_three_occupied == False
                         ):
-                        select_slot(3)
+                        place_tower(selected_tower, 3)
+                if selling_tower_selected == False:
+                    if (
+                        pos[0] >= tower_slot_one_area[0] and
+                        pos[0] <= tower_slot_one_area[1] and
+                        pos[1] >= tower_slot_one_area[2] and
+                        pos[1] <= tower_slot_one_area[3] and
+                        tower_slot_one_occupied == True
+                        ):
+                        select_tower_to_sell(tower_slot_one, 1)
+                    if (
+                        pos[0] >= tower_slot_two_area[0] and
+                        pos[0] <= tower_slot_two_area[1] and
+                        pos[1] >= tower_slot_two_area[2] and
+                        pos[1] <= tower_slot_two_area[3] and
+                        tower_slot_two_occupied == True
+                        ):
+                        select_tower_to_sell(tower_slot_two, 2)
+                    if (
+                        pos[0] >= tower_slot_three_area[0] and
+                        pos[0] <= tower_slot_three_area[1] and
+                        pos[1] >= tower_slot_three_area[2] and
+                        pos[1] <= tower_slot_three_area[3] and
+                        tower_slot_three_occupied == True
+                        ):
+                        select_tower_to_sell(tower_slot_three, 3)
                 else:
                     if (
-                        pos[0] >= archer_select_ui_area[0] and
-                        pos[0] <= archer_select_ui_area[1] and
-                        pos[1] >= archer_select_ui_area[2] and
-                        pos[1] <= archer_select_ui_area[3]
+                        pos[0] >= sell_select_area[0] and
+                        pos[0] <= sell_select_area[1] and
+                        pos[1] >= sell_select_area[2] and
+                        pos[1] <= sell_select_area[3]
                         ):
-                        place_tower(selected_slot, ARCHER)
+                        sell_tower(selling_tower_selected_number)
                     if (
-                        pos[0] >= wizard_select_ui_area[0] and
-                        pos[0] <= wizard_select_ui_area[1] and
-                        pos[1] >= wizard_select_ui_area[2] and
-                        pos[1] <= wizard_select_ui_area[3]
+                        pos[0] >= cancel_area[0] and
+                        pos[0] <= cancel_area[1] and
+                        pos[1] >= cancel_area[2] and
+                        pos[1] <= cancel_area[3]
                         ):
-                        place_tower(selected_slot, WIZARD)
-                    if (
-                        pos[0] >= imp_select_ui_area[0] and
-                        pos[0] <= imp_select_ui_area[1] and
-                        pos[1] >= imp_select_ui_area[2] and
-                        pos[1] <= imp_select_ui_area[3]
-                        ):
-                        place_tower(selected_slot, IMP)
-                    if (
-                        pos[0] >= cancel_select_ui_area[0] and
-                        pos[0] <= cancel_select_ui_area[1] and
-                        pos[1] >= cancel_select_ui_area[2] and
-                        pos[1] <= cancel_select_ui_area[3]
-                        ):
-                        slot_selected = False
-                        tower_selector_ui = TOWER_SELECTOR_HIDDEN
+                        cancel_sell()
+
                         
 
 
@@ -1039,12 +1281,16 @@ def draw(): # Draw all the
     tower_slot_one.draw()
     tower_slot_two.draw()
     tower_slot_three.draw()
+    sell_select.draw()
     game_start_button.draw()
     game_bar.draw()
-    tower_selector_ui.draw()
+    archer_button.draw()
+    wizard_button.draw()
+    imp_button.draw()
     drop_down_ui.draw()
     game_bar_switcher.draw()
     drop_down_button.draw()
+    current_tower.draw()
     
     
 
