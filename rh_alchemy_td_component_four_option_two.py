@@ -853,6 +853,7 @@ def update():
                     projectile.pos += go_to
             except NameError:
                 pass
+            projectile_angle = 0
             if enemy_index != -1:
                 del spawned_enemies[enemy_index]
                 spawned_projectiles.remove(projectile)
