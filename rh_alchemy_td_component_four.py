@@ -9,6 +9,7 @@ All images to be imported need to be to a scale of 3x
 
 WIDTH = 1080
 HEIGHT = 540
+game_started = 0
 
 #This lets the screen move to designated points of each screen
 SCREEN_X = [3240.0, 2160.0, 1080.0, -2160.0]
@@ -18,11 +19,11 @@ balance = 150000
 # any time is done in frames
 TOWERS_STATS = [
 # Example:
-#   [tower image, base damage, base cooldown, base range, pierce]
-["empty.png"],
-["archer.png", 100, 3, 45, 150, 2],
-["wizard.png", 250, 7, 60, 200, 1],
-["imp.png", 200, 1, 15, 75, 2]
+# [tower image, base cost, base cooldown, current cooldown, projectile sprite]
+["empty"],
+["archer", 100, 75, 75, "archer_projectile"],
+["wizard", 250, 45, 25, "wizard_projectile"],
+["imp", 400, 25, 15, "imp_projectile"]
     ]
 
 # variables to call for specific stats, which makes the code
@@ -35,43 +36,46 @@ IMP = 3
 
 TOWER_IMAGE = 0
 TOWER_COST = 1
-BASE_DAMAGE = 2
-BASE_COOLDOWN = 3
-BASE_RANGE = 4
-TOWER_PIERCE = 5
+BASE_COOLDOWN = 2
+CURRENT_COOLDOWN = 3
+PROJECTILE_SPRITE = 4
 
-# enemys
+MIN_SPAWN_Y = 490
+MAX_SPAWN_Y = 520
+PROJECTILE_SPEED = -35
+ENEMY_SPEED = 15
 
-ENEMY_STATS = [
+# enemies
+
+enemy_stats = [
 # Example:
-# [health, walk speed, dropped cost, initial cooldown, base cooldown]
-    [9, 12, 20, 5 * 60, 1 * 60],
-    [22, 6, 60, 20 * 60, 5 * 60],
-    [6, 24, 45, 45 * 60, .2 * 60]
+# [dropped cost, initial cooldown, base cooldown, sprite]
+    [20, 5 * 60, 60, 0, "slime"],
+    [60, 20 * 60, 300, 0, "zombie"],
+    [45, 45 * 60, 30, 0, "enemy_imp"]
     ]
 
-ENEMY_HEALTH = 0
-ENEMY_SPEED = 1
 
-ENEMY_SPRITES = []
+ENEMY_DROPPED_COST = 0
+ENEMY_INITIAL_COOLDOWN = 1
+ENEMY_BASE_COOLDOWN = 2
+ENEMY_CURRENT_COOLDOWN = 3
+ENEMY_SPRITE = 4
 
 SLIME = 0
 ZOMBIE = 1
 ENEMY_IMP = 2
 
-DIFFICULTY_CHANGES = [
-# Example:
-# [overall stat multiplier, over time multiplier, max/min stats]
-    []
-    ]
-
 direction = 0
 
 game_start = False
 
-FULL_MENU = Actor("full_menu.png")
+FULL_MENU = Actor("full_menu")
 FULL_MENU.y = 270
 
+spawned_enemies = []
+
+spawned_projectiles = []
 
 # All of the buttons are set up as the following way
 # The states it can be (e.g. hovered, selected and default) are made
@@ -89,9 +93,9 @@ UI_BUTTON_SPACING = 85
 DIFFICULTY_ICON_HEIGHT = 144
 DIFFICULTY_ICON_WIDTH = 84
 
-play_button = Actor("menu_play_text.png")
+play_button = Actor("menu_play_text")
 PLAY_BUTTON_DEFAULT = play_button
-PLAY_BUTTON_HOVER = Actor("menu_play_text_hover.png")
+PLAY_BUTTON_HOVER = Actor("menu_play_text_hover")
 play_button.x = MENU_BUTTON_X
 play_button.y = 195
 PLAY_BUTTON_DEFAULT.pos = play_button.pos
@@ -103,9 +107,9 @@ play_button_area = [
     play_button.y + (MENU_BUTTON_HEIGHT / 2)
 ]
 
-credits_button = Actor("menu_credits_text.png")
+credits_button = Actor("menu_credits_text")
 CREDITS_BUTTON_DEFAULT = credits_button
-CREDITS_BUTTON_HOVER = Actor("menu_credits_text_hover.png")
+CREDITS_BUTTON_HOVER = Actor("menu_credits_text_hover")
 credits_button.x = MENU_BUTTON_X
 credits_button.y = play_button.y + MENU_BUTTON_Y_DIFFERENCE
 credits_button_area = [
@@ -115,11 +119,11 @@ credits_button_area = [
     credits_button.y + (MENU_BUTTON_HEIGHT / 2)
 ]
 
-debug_button = Actor("menu_debug_text_off.png")
-DEBUG_BUTTON_ON = Actor("menu_debug_text_on.png")
+debug_button = Actor("menu_debug_text_off")
+DEBUG_BUTTON_ON = Actor("menu_debug_text_on")
 DEBUG_BUTTON_OFF = debug_button
-DEBUG_BUTTON_ON_HOVER = Actor("menu_debug_text_on_hover.png")
-DEBUG_BUTTON_OFF_HOVER = Actor("menu_debug_text_off_hover.png")
+DEBUG_BUTTON_ON_HOVER = Actor("menu_debug_text_on_hover")
+DEBUG_BUTTON_OFF_HOVER = Actor("menu_debug_text_off_hover")
 debug_button.x = MENU_BUTTON_X
 debug_button.y = credits_button.y + MENU_BUTTON_Y_DIFFERENCE
 debug_button_area = [
@@ -129,9 +133,9 @@ debug_button_area = [
     debug_button.y + (MENU_BUTTON_HEIGHT / 2)
 ]
 
-back_from_credits = Actor("back_from_credits.png")
+back_from_credits = Actor("back_from_credits")
 BACK_FROM_CREDITS_DEFAULT = back_from_credits
-BACK_FROM_CREDITS_HOVER = Actor("back_from_credits_hover.png")
+BACK_FROM_CREDITS_HOVER = Actor("back_from_credits_hover")
 back_from_credits.x = -85
 back_from_credits.y = 85
 back_from_credits_area = [
@@ -141,9 +145,9 @@ back_from_credits_area = [
     back_from_credits.y + (UI_BUTTON_SIDE / 2)
 ]
 
-back_from_play = Actor("back_from_play.png")
+back_from_play = Actor("back_from_play")
 BACK_FROM_PLAY_DEFAULT = back_from_play
-BACK_FROM_PLAY_HOVER = Actor("back_from_play_hover.png")
+BACK_FROM_PLAY_HOVER = Actor("back_from_play_hover")
 back_from_play.x = 2075
 back_from_play.y = 85
 back_from_play_area = [
@@ -153,21 +157,21 @@ back_from_play_area = [
     back_from_play.y + (UI_BUTTON_SIDE / 2)
 ]
 
-difficulty_display = Actor("difficulty_display.png")
+difficulty_display = Actor("difficulty_display")
 difficulty_display.x = 1360
 difficulty_display.y = 495
 
-NO_DIFFICULTY_DISPLAY = Actor("difficulty_display_none.png")
-EASY_DIFFICULTY_DISPLAY = Actor("difficulty_display_easy.png")
-MEDIUM_DIFFICULTY_DISPLAY = Actor("difficulty_display_medium.png")
-HARD_DIFFICULTY_DISPLAY = Actor("difficulty_display_hard.png")
+NO_DIFFICULTY_DISPLAY = Actor("difficulty_display_none")
+EASY_DIFFICULTY_DISPLAY = Actor("difficulty_display_easy")
+MEDIUM_DIFFICULTY_DISPLAY = Actor("difficulty_display_medium")
+HARD_DIFFICULTY_DISPLAY = Actor("difficulty_display_hard")
 current_difficulty_display = NO_DIFFICULTY_DISPLAY
 current_difficulty_display.x = 1780
 current_difficulty_display.y = 495
 
-EASY_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_easy_icon.png")
-EASY_DIFFICULTY_ICON_HOVER = Actor("difficulty_easy_icon_hover.png")
-EASY_DIFFICULTY_ICON_SELECT = Actor("difficulty_easy_icon_select.png")
+EASY_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_easy_icon")
+EASY_DIFFICULTY_ICON_HOVER = Actor("difficulty_easy_icon_hover")
+EASY_DIFFICULTY_ICON_SELECT = Actor("difficulty_easy_icon_select")
 easy_difficulty_icon = EASY_DIFFICULTY_ICON_DEFAULT
 easy_difficulty_icon.x = 1220
 easy_difficulty_icon.y = 360
@@ -178,9 +182,9 @@ easy_difficulty_icon_area = [
     easy_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
     ]
 
-MEDIUM_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_medium_icon.png")
-MEDIUM_DIFFICULTY_ICON_HOVER = Actor("difficulty_medium_icon_hover.png")
-MEDIUM_DIFFICULTY_ICON_SELECT = Actor("difficulty_medium_icon_select.png")
+MEDIUM_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_medium_icon")
+MEDIUM_DIFFICULTY_ICON_HOVER = Actor("difficulty_medium_icon_hover")
+MEDIUM_DIFFICULTY_ICON_SELECT = Actor("difficulty_medium_icon_select")
 medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_DEFAULT
 medium_difficulty_icon.x = 1660
 medium_difficulty_icon.y = 270
@@ -191,9 +195,9 @@ medium_difficulty_icon_area = [
     medium_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
     ]
 
-HARD_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_hard_icon.png")
-HARD_DIFFICULTY_ICON_HOVER = Actor("difficulty_hard_icon_hover.png")
-HARD_DIFFICULTY_ICON_SELECT = Actor("difficulty_hard_icon_select.png")
+HARD_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_hard_icon")
+HARD_DIFFICULTY_ICON_HOVER = Actor("difficulty_hard_icon_hover")
+HARD_DIFFICULTY_ICON_SELECT = Actor("difficulty_hard_icon_select")
 hard_difficulty_icon = HARD_DIFFICULTY_ICON_DEFAULT
 hard_difficulty_icon.x = 1950
 hard_difficulty_icon.y = 330
@@ -204,9 +208,9 @@ hard_difficulty_icon_area = [
     hard_difficulty_icon.y + (DIFFICULTY_ICON_HEIGHT / 2)
     ]
 
-GAME_START_BUTTON_DEFAULT = Actor("difficulty_start_text.png")
-GAME_START_BUTTON_HOVER = Actor("difficulty_start_text_hover.png")
-GAME_START_BUTTON_UNSELECTABLE = Actor("difficulty_start_text_unselectable.png")
+GAME_START_BUTTON_DEFAULT = Actor("difficulty_start_text")
+GAME_START_BUTTON_HOVER = Actor("difficulty_start_text_hover")
+GAME_START_BUTTON_UNSELECTABLE = Actor("difficulty_start_text_unselectable")
 game_start_button = GAME_START_BUTTON_UNSELECTABLE
 game_start_button.x = 1810
 game_start_button.y = 85
@@ -217,16 +221,16 @@ game_start_button_area = [
     game_start_button.y + (MENU_BUTTON_HEIGHT / 2)
     ]
 
-drop_down_ui = Actor("drop_down_ui.png")
+drop_down_ui = Actor("drop_down_ui")
 DROP_DOWN_STATES = [270, -60]
 drop_down_state = 1 # 0 being shown, 1 being hidden
 drop_down_ui.x = 4860
 drop_down_ui.y = DROP_DOWN_STATES[drop_down_state]
 
-DROP_DOWN_BUTTON_UP_DEFAULT = Actor("button_up.png")
-DROP_DOWN_BUTTON_UP_HOVER = Actor("button_up_selected.png")
-DROP_DOWN_BUTTON_DOWN_DEFAULT = Actor("button_down.png")
-DROP_DOWN_BUTTON_DOWN_HOVER = Actor("button_down_selected.png")
+DROP_DOWN_BUTTON_UP_DEFAULT = Actor("button_up")
+DROP_DOWN_BUTTON_UP_HOVER = Actor("button_up_selected")
+DROP_DOWN_BUTTON_DOWN_DEFAULT = Actor("button_down")
+DROP_DOWN_BUTTON_DOWN_HOVER = Actor("button_down_selected")
 drop_down_button = DROP_DOWN_BUTTON_UP_DEFAULT
 drop_down_button.x = drop_down_ui.x
 drop_down_button.y = drop_down_ui.y + 120
@@ -243,17 +247,17 @@ drop_down_button_area = [
 tower_selected_state = 0
 # 0 being no tower is selected, 1 being for a tower is selected.
 
-UNSELECT_TOWER_BUTTON_DEFAULT = Actor("unselect_tower.png")
-UNSELECT_TOWER_BUTTON_HOVER = Actor("unselect_tower_hover.png")
+UNSELECT_TOWER_BUTTON_DEFAULT = Actor("unselect_tower")
+UNSELECT_TOWER_BUTTON_HOVER = Actor("unselect_tower_hover")
 
-game_bar = Actor("game_bar.png")
+game_bar = Actor("game_bar")
 GAME_BAR_STATES = [18, 1068]
 game_bar_state = 0
 game_bar.x = 4860
 game_bar.y = drop_down_ui.y - 120
 
-GAME_BAR_SWITCHER_LEFT = Actor("bar_switcher_left.png")
-GAME_BAR_SWITCHER_RIGHT = Actor("bar_switcher_right.png")
+GAME_BAR_SWITCHER_LEFT = Actor("bar_switcher_left")
+GAME_BAR_SWITCHER_RIGHT = Actor("bar_switcher_right")
 game_bar_switcher = GAME_BAR_SWITCHER_LEFT
 game_bar_switcher.x = 5240
 game_bar_switcher.y = -60
@@ -269,9 +273,9 @@ game_bar_switcher_area = [
 TOWER_BUTTON_HEIGHT = 54 * 3
 TOWER_BUTTON_WIDTH = 80 * 3
 
-ARCHER_BUTTON_DEFAULT = Actor("archer_tower_button.png")
-ARCHER_BUTTON_HOVER = Actor("archer_tower_button_hover.png")
-ARCHER_BUTTON_UNSELECTABLE = Actor("archer_tower_button_unselectable.png")
+ARCHER_BUTTON_DEFAULT = Actor("archer_tower_button")
+ARCHER_BUTTON_HOVER = Actor("archer_tower_button_hover")
+ARCHER_BUTTON_UNSELECTABLE = Actor("archer_tower_button_unselectable")
 archer_button = ARCHER_BUTTON_DEFAULT
 archer_button_area = [
     archer_button.x - (TOWER_BUTTON_WIDTH / 2),
@@ -280,9 +284,9 @@ archer_button_area = [
     archer_button.y + (TOWER_BUTTON_HEIGHT / 2)
     ]
 
-WIZARD_BUTTON_DEFAULT = Actor("wizard_tower_button.png")
-WIZARD_BUTTON_HOVER = Actor("wizard_tower_button_hover.png")
-WIZARD_BUTTON_UNSELECTABLE = Actor("wizard_tower_button_unselectable.png")
+WIZARD_BUTTON_DEFAULT = Actor("wizard_tower_button")
+WIZARD_BUTTON_HOVER = Actor("wizard_tower_button_hover")
+WIZARD_BUTTON_UNSELECTABLE = Actor("wizard_tower_button_unselectable")
 wizard_button = WIZARD_BUTTON_DEFAULT
 wizard_button_area = [
     wizard_button.x - (TOWER_BUTTON_WIDTH / 2),
@@ -291,9 +295,9 @@ wizard_button_area = [
     wizard_button.y + (TOWER_BUTTON_HEIGHT / 2)
     ]
 
-IMP_BUTTON_DEFAULT = Actor("imp_tower_button.png")
-IMP_BUTTON_HOVER = Actor("imp_tower_button_hover.png")
-IMP_BUTTON_UNSELECTABLE = Actor("imp_tower_button_unselectable.png")
+IMP_BUTTON_DEFAULT = Actor("imp_tower_button")
+IMP_BUTTON_HOVER = Actor("imp_tower_button_hover")
+IMP_BUTTON_UNSELECTABLE = Actor("imp_tower_button_unselectable")
 imp_button = IMP_BUTTON_DEFAULT
 imp_button_area = [
     imp_button.x - (TOWER_BUTTON_WIDTH / 2),
@@ -306,13 +310,10 @@ imp_button_area = [
 
 TOWER_SLOT_SIDE_LENGTH = 56 * 3
 
-TOWER_SLOT_ONE_EMPTY = Actor("tower_empty.png")
-TOWER_SLOT_ONE_ARCHER_LEFT = Actor("tower_archer_left.png")
-TOWER_SLOT_ONE_ARCHER_RIGHT = Actor("tower_archer_right.png")
-TOWER_SLOT_ONE_WIZARD_LEFT = Actor("tower_wizard_left.png")
-TOWER_SLOT_ONE_WIZARD_RIGHT = Actor("tower_wizard_right.png")
-TOWER_SLOT_ONE_IMP_LEFT = Actor("tower_imp_left.png")
-TOWER_SLOT_ONE_IMP_RIGHT = Actor("tower_imp_right.png")
+TOWER_SLOT_ONE_EMPTY = Actor("tower_empty")
+TOWER_SLOT_ONE_ARCHER_LEFT = Actor("tower_archer_left")
+TOWER_SLOT_ONE_WIZARD_LEFT = Actor("tower_wizard_left")
+TOWER_SLOT_ONE_IMP_LEFT = Actor("tower_imp_left")
 tower_slot_one = TOWER_SLOT_ONE_EMPTY
 tower_slot_one.x = 4500
 tower_slot_one.y = 390
@@ -325,13 +326,10 @@ tower_slot_one_area = [
     ]
 tower_slot_one_stats = []
 
-TOWER_SLOT_TWO_EMPTY = Actor("tower_empty.png")
-TOWER_SLOT_TWO_ARCHER_LEFT = Actor("tower_archer_left.png")
-TOWER_SLOT_TWO_ARCHER_RIGHT = Actor("tower_archer_right.png")
-TOWER_SLOT_TWO_WIZARD_LEFT = Actor("tower_wizard_left.png")
-TOWER_SLOT_TWO_WIZARD_RIGHT = Actor("tower_wizard_right.png")
-TOWER_SLOT_TWO_IMP_LEFT = Actor("tower_imp_left.png")
-TOWER_SLOT_TWO_IMP_RIGHT = Actor("tower_imp_right.png")
+TOWER_SLOT_TWO_EMPTY = Actor("tower_empty")
+TOWER_SLOT_TWO_ARCHER_LEFT = Actor("tower_archer_left")
+TOWER_SLOT_TWO_WIZARD_LEFT = Actor("tower_wizard_left")
+TOWER_SLOT_TWO_IMP_LEFT = Actor("tower_imp_left")
 tower_slot_two = TOWER_SLOT_TWO_EMPTY
 tower_slot_two.x = 4860
 tower_slot_two.y = 320
@@ -344,13 +342,10 @@ tower_slot_two_area = [
     ]
 tower_slot_two_stats = []
 
-TOWER_SLOT_THREE_EMPTY = Actor("tower_empty.png")
-TOWER_SLOT_THREE_ARCHER_LEFT = Actor("tower_archer_left.png")
-TOWER_SLOT_THREE_ARCHER_RIGHT = Actor("tower_archer_right.png")
-TOWER_SLOT_THREE_WIZARD_LEFT = Actor("tower_wizard_left.png")
-TOWER_SLOT_THREE_WIZARD_RIGHT = Actor("tower_wizard_right.png")
-TOWER_SLOT_THREE_IMP_LEFT = Actor("tower_imp_left.png")
-TOWER_SLOT_THREE_IMP_RIGHT = Actor("tower_imp_right.png")
+TOWER_SLOT_THREE_EMPTY = Actor("tower_empty")
+TOWER_SLOT_THREE_ARCHER_LEFT = Actor("tower_archer_left")
+TOWER_SLOT_THREE_WIZARD_LEFT = Actor("tower_wizard_left")
+TOWER_SLOT_THREE_IMP_LEFT = Actor("tower_imp_left")
 tower_slot_three = TOWER_SLOT_THREE_EMPTY
 tower_slot_three.x = 5220
 tower_slot_three.y = 360
@@ -372,15 +367,28 @@ CURRENT_TOWERS = [Actor(TOWERS_STATS[EMPTY][TOWER_IMAGE]),
 current_tower_value = 0
 current_tower = CURRENT_TOWERS[current_tower_value]
 
-balance_icon = Actor("balance_icon.png")
+balance_icon = Actor("balance_icon")
 balance_icon.x = 5400
 balance_icon.y = drop_down_button.y
 selected_tower = 0
 
+START_GAME_BUTTON_DEFAULT = Actor("start_game")
+START_GAME_BUTTON_HOVER = Actor("start_game_hover")
+START_GAME_BUTTON_HIDDEN = Actor("empty")
+start_game_button = START_GAME_BUTTON_DEFAULT
+start_game_button.x = 4400
+start_game_button.y = 230
+start_game_button_area = [
+    start_game_button.x - (UI_BUTTON_SIDE / 2),
+    start_game_button.x + (UI_BUTTON_SIDE / 2),
+    start_game_button.y - (UI_BUTTON_SIDE / 2),
+    start_game_button.y + (UI_BUTTON_SIDE / 2)
+    ]
+
 # ability to select a tower and sell it
 
-SELL_SELECT_DEFAULT = Actor("tower_select.png")
-SELL_SELECT_HIDDEN = Actor("empty.png")
+SELL_SELECT_DEFAULT = Actor("tower_select")
+SELL_SELECT_HIDDEN = Actor("empty")
 sell_select = SELL_SELECT_HIDDEN
 sell_select.x = 0
 sell_select.y = 0
@@ -407,6 +415,10 @@ difficulty = 0
 current_screen = 1
 FULL_MENU.x = SCREEN_X[current_screen]
 debug = False
+
+#
+# Seperate between functions and variables
+#
 
 def move_all(movement, direction):
     # To move all the buttons and the screen at the same time
@@ -437,6 +449,51 @@ def move_all(movement, direction):
     tower_slot_one.x += movement * direction
     tower_slot_two.x += movement * direction
     tower_slot_three.x += movement * direction
+    start_game_button.x += movement * direction
+
+
+def spawn(actor_name, from_player:
+    global spawned_enemies, spawned_projectiles
+    spawn = Actor(actor_name)
+    spawn.y = random.randint(MIN_SPAWN_Y, MAX_SPAWN_Y)
+    if from_player:
+        spawn.x = 1112
+        spawned_projectiles.append(spawn)
+    else:
+        spawn.x = -32
+        spawned_enemies.append(spawn)
+    
+
+
+def tick():
+    global enemy_stats
+    global TOWERS_TOWERS_STATS
+    if tower_slot_one_occupied:
+        if tower_slot_one_stats[CURRENT_COOLDOWN] != 0:
+            tower_slot_one_stats[CURRENT_COOLDOWN] -= 1
+        else:
+            spawn(tower_slot_one_stats[PROJECTILE_SPRITE], True)
+            tower_slot_one_stats[CURRENT_COOLDOWN] = tower_slot_one_stats[BASE_COOLDOWN]
+    if tower_slot_two_occupied:
+        if tower_slot_two_stats[CURRENT_COOLDOWN] != 0:
+            tower_slot_two_stats[CURRENT_COOLDOWN] -= 1
+        else:
+            spawn(tower_slot_two_stats[PROJECTILE_SPRITE], True)
+            tower_slot_two_stats[CURRENT_COOLDOWN] = tower_slot_two_stats[BASE_COOLDOWN]
+    if tower_slot_three_occupied:
+        if tower_slot_three_stats[CURRENT_COOLDOWN] != 0:
+            tower_slot_three_stats[CURRENT_COOLDOWN] -= 1
+        else:
+            spawn(tower_slot_three_stats[PROJECTILE_SPRITE], True)
+            tower_slot_three_stats[CURRENT_COOLDOWN] = tower_slot_three_stats[BASE_COOLDOWN]
+    for enemy_stat in enemy_stats:
+        if enemy_stat[ENEMY_INITIAL_COOLDOWN] != 0:
+            enemy_stat[ENEMY_INITIAL_COOLDOWN] -= 1
+        elif enemy_stat[ENEMY_CURRENT_COOLDOWN] != 0:
+            enemy_stat[ENEMY_CURRENT_COOLDOWN] -= 1
+        elif enemy_stat[ENEMY_CURRENT_COOLDOWN] == 0:
+            enemy_stat[ENEMY_CURRENT_COOLDOWN] = enemy_stat[ENEMY_BASE_COOLDOWN]
+            spawn(enemy_stat[ENEMY_SPRITE], False)
 
 
 def update():
@@ -455,7 +512,11 @@ def update():
     global archer_button_area, wizard_button_area, imp_button_area
     global cancel_tower_button, cancel_tower_button_area
     global tower_slot_one_area, tower_slot_two_area, tower_slot_three_area
-    global sell_select_area, cancel_area
+    global sell_select_area, cancel_area, start_game_button_area
+    global start_game_button, spawned_projectiles, spawned_enemies
+    # The following three "if" statements make it so the following
+    # move smoothly:
+    # menu screen, 
     if FULL_MENU.x != SCREEN_X[current_screen]:
         if FULL_MENU.x >= SCREEN_X[current_screen]:
             direction = -1 # To the right
@@ -541,6 +602,8 @@ def update():
             move = 1
         if distance != 0:
             game_bar.x += move * direction
+    # The following redefine the areas, so as the screen moves
+    # the hitboxes for the areas move alongside them
     back_from_credits_area = [
         back_from_credits.x - (UI_BUTTON_SIDE / 2),
         back_from_credits.x + (UI_BUTTON_SIDE / 2),
@@ -661,6 +724,15 @@ def update():
         sell_select.y - 18,
         sell_select.y + 18
     ]
+    start_game_button_area = [
+        start_game_button.x - (UI_BUTTON_SIDE / 2),
+        start_game_button.x + (UI_BUTTON_SIDE / 2),
+        start_game_button.y - (UI_BUTTON_SIDE / 2),
+        start_game_button.y + (UI_BUTTON_SIDE / 2)
+    ]
+    # The states share a seperate position as to the main actor
+    # they're based off of. The following apply to keep them in the
+    # same area.
     PLAY_BUTTON_DEFAULT.pos = play_button.pos
     PLAY_BUTTON_HOVER.pos = play_button.pos
     BACK_FROM_CREDITS_DEFAULT.pos = back_from_credits.pos
@@ -708,25 +780,21 @@ def update():
     UNSELECT_TOWER_BUTTON_HOVER.pos = drop_down_button.pos
     TOWER_SLOT_ONE_EMPTY.pos = tower_slot_one.pos
     TOWER_SLOT_ONE_ARCHER_LEFT.pos = tower_slot_one.pos
-    TOWER_SLOT_ONE_ARCHER_RIGHT.pos = tower_slot_one.pos
     TOWER_SLOT_ONE_WIZARD_LEFT.pos = tower_slot_one.pos
-    TOWER_SLOT_ONE_WIZARD_RIGHT.pos = tower_slot_one.pos
     TOWER_SLOT_ONE_IMP_LEFT.pos = tower_slot_one.pos
-    TOWER_SLOT_ONE_IMP_RIGHT.pos = tower_slot_one.pos
     TOWER_SLOT_TWO_EMPTY.pos = tower_slot_two.pos
     TOWER_SLOT_TWO_ARCHER_LEFT.pos = tower_slot_two.pos
-    TOWER_SLOT_TWO_ARCHER_RIGHT.pos = tower_slot_two.pos
     TOWER_SLOT_TWO_WIZARD_LEFT.pos = tower_slot_two.pos
-    TOWER_SLOT_TWO_WIZARD_RIGHT.pos = tower_slot_two.pos
     TOWER_SLOT_TWO_IMP_LEFT.pos = tower_slot_two.pos
-    TOWER_SLOT_TWO_IMP_RIGHT.pos = tower_slot_two.pos
     TOWER_SLOT_THREE_EMPTY.pos = tower_slot_three.pos
     TOWER_SLOT_THREE_ARCHER_LEFT.pos = tower_slot_three.pos
-    TOWER_SLOT_THREE_ARCHER_RIGHT.pos = tower_slot_three.pos
     TOWER_SLOT_THREE_WIZARD_LEFT.pos = tower_slot_three.pos
-    TOWER_SLOT_THREE_WIZARD_RIGHT.pos = tower_slot_three.pos
     TOWER_SLOT_THREE_IMP_LEFT.pos = tower_slot_three.pos
-    TOWER_SLOT_THREE_IMP_RIGHT.pos = tower_slot_three.pos
+    START_GAME_BUTTON_DEFAULT.pos = start_game_button.pos
+    START_GAME_BUTTON_HOVER.pos = start_game_button.pos
+    START_GAME_BUTTON_HIDDEN.pos = start_game_button.pos
+    # The following help keep certain actors to the specific sprite
+    # they need to be.
     if difficulty == 1:
         current_difficulty_display = EASY_DIFFICULTY_DISPLAY
         easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
@@ -741,13 +809,45 @@ def update():
     else:
         game_bar_switcher = GAME_BAR_SWITCHER_LEFT
 
+    # tower firing functions - component four
+    
+    if game_started == 1:
+        if start_game_button != START_GAME_BUTTON_HIDDEN:
+            start_game_button = START_GAME_BUTTON_HIDDEN
+        tick()
+        for projectile in spawned_projectiles:
+            projectile.x += PROJECTILE_SPEED
+            enemy_index = projectile.collidelist(spawned_enemies)
+            if enemy_index != -1:
+                del spawned_enemies[enemy_index]
+                spawned_projectiles.remove(projectile)
+            if projectile.x < -32:
+                spawned_projectiles.remove(projectile)
+
+        for enemy in spawned_enemies:
+            enemy.x += ENEMY_SPEED
+            
+
 
 def prepare_game():
     global current_screen
     current_screen = 3
 
 def start_game():
-    print("start")
+    global game_started
+    global difficulty
+    if difficulty == 1:
+        multiplier = 1
+    elif difficulty == 2:
+        multiplier = 1.4
+    else:
+        multiplier = 1.8
+    for enemy_stat in enemy_stats:
+        enemy_stat[ENEMY_DROPPED_COST] * multiplier
+        enemy_stat[ENEMY_INITIAL_COOLDOWN] / multiplier
+        enemy_stat[ENEMY_BASE_COOLDOWN] / multiplier
+    game_started = 1
+    
 
 def on_mouse_move(pos):
     global debug
@@ -757,6 +857,7 @@ def on_mouse_move(pos):
     global medium_difficulty_icon, hard_difficulty_icon
     global game_start_button, drop_down_button, tower_selected_state
     global archer_button, wizard_button, imp_button, sell_select_area
+    global start_game_button
     if game_start == False:
         if current_screen == 0:
             if (
@@ -929,7 +1030,23 @@ def on_mouse_move(pos):
                     imp_button = IMP_BUTTON_DEFAULT
             else:
                 imp_button = IMP_BUTTON_UNSELECTABLE
-
+            if (
+                pos[0] >= start_game_button_area[0] and
+                pos[0] <= start_game_button_area[1] and
+                pos[1] >= start_game_button_area[2] and
+                pos[1] <= start_game_button_area[3] and
+                game_started != 1
+                ):
+                if debug:
+                    print("hovered")
+                start_game_button = START_GAME_BUTTON_HOVER
+            else:
+                if debug:
+                    print("normal")
+                start_game_button = START_GAME_BUTTON_DEFAULT
+            
+                
+                
 
 def select_tower(tower):
     global tower_selected_state, current_tower, drop_down_state
@@ -1039,7 +1156,7 @@ def on_mouse_down(pos, button):
     global easy_difficulty_icon, medium_difficulty_icon
     global hard_difficulty_icon, drop_down_state, game_bar_state
     global current_tower, tower_selected_state
-    global selling_tower_selected_number
+    global selling_tower_selected_number, start_game_button
     if game_start == False:
         if current_screen == 0:
             if (
@@ -1148,7 +1265,7 @@ def on_mouse_down(pos, button):
                     prepare_game()
         if current_screen == 3:
             if button == mouse.LEFT:
-                print(selling_tower_selected_number)
+                print(pos)
                 if (
                     pos[0] >= drop_down_button_area[0] and
                     pos[0] <= drop_down_button_area[1] and
@@ -1262,11 +1379,17 @@ def on_mouse_down(pos, button):
                         pos[1] <= cancel_area[3]
                         ):
                         cancel_sell()
+                if (
+                    pos[0] >= start_game_button_area[0] and
+                    pos[0] <= start_game_button_area[1] and
+                    pos[1] >= start_game_button_area[2] and
+                    pos[1] <= start_game_button_area[3] and
+                    game_started != 1
+                    ):
+                    start_game()
 
-                        
 
-
-def draw(): # Draw all the
+def draw(): # Draw all the buttons/actors
     FULL_MENU.draw()
     back_from_credits.draw()
     play_button.draw()
@@ -1278,11 +1401,13 @@ def draw(): # Draw all the
     easy_difficulty_icon.draw()
     medium_difficulty_icon.draw()
     hard_difficulty_icon.draw()
+    game_start_button.draw()
     tower_slot_one.draw()
     tower_slot_two.draw()
     tower_slot_three.draw()
+    start_game_button.draw()
     sell_select.draw()
-    game_start_button.draw()
+    start_game_button.draw()
     game_bar.draw()
     archer_button.draw()
     wizard_button.draw()
@@ -1291,6 +1416,10 @@ def draw(): # Draw all the
     game_bar_switcher.draw()
     drop_down_button.draw()
     current_tower.draw()
+    for enemy in spawned_enemies:
+        enemy.draw()
+    for projectile in spawned_projectiles:
+        projectile.draw()
     
     
 
