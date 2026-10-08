@@ -1,5 +1,6 @@
 import pgzrun
 import random
+import math
 """
 COMPONENT TWO UPDATING ON FEEDBACK
 
@@ -12,9 +13,21 @@ HEIGHT = 540
 #This lets the screen move to designated points of each screen
 SCREEN_X = [3240.0, 2160.0, 1080.0, -2160.0]
 
-TOWERS_STATS_DICT = {
-    "": []
-    }
+balance = 150
+
+# any time is done in frames
+TOWERS_STATS = [
+# Example:
+# [actor(sprite) left, actor right, name, level, cost, base damage,
+#    base cooldown, base range, pierce, base upgrade price,
+#    base upgrade mult]
+["tower_archer_left.png", "tower_archer_right.png",
+ "archer", 1, 100, 3, 45, 150, 2, 50, 1.5],
+["tower_wizard_left.png", "tower_wizard_right.png",
+ "wizard", 1, 250, 7, 60, 200, 1, 75, 2],
+["tower_imp_left.png", "tower_imp_right.png",
+ "imp", 1, 200, 1, 15, 75, 2, 50, 1.25]
+    ]
 
 direction = 0
 
@@ -121,7 +134,7 @@ EASY_DIFFICULTY_ICON_HOVER = Actor("difficulty_easy_icon_hover.png")
 EASY_DIFFICULTY_ICON_SELECT = Actor("difficulty_easy_icon_select.png")
 easy_difficulty_icon = EASY_DIFFICULTY_ICON_DEFAULT
 easy_difficulty_icon.x = 1220
-easy_difficulty_icon.y = 320
+easy_difficulty_icon.y = 360
 easy_difficulty_icon_area = [
     easy_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
     easy_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
@@ -133,8 +146,8 @@ MEDIUM_DIFFICULTY_ICON_DEFAULT = Actor("difficulty_medium_icon.png")
 MEDIUM_DIFFICULTY_ICON_HOVER = Actor("difficulty_medium_icon_hover.png")
 MEDIUM_DIFFICULTY_ICON_SELECT = Actor("difficulty_medium_icon_select.png")
 medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_DEFAULT
-medium_difficulty_icon.x = 1520
-medium_difficulty_icon.y = 280
+medium_difficulty_icon.x = 1660
+medium_difficulty_icon.y = 270
 medium_difficulty_icon_area = [
     medium_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
     medium_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
@@ -147,7 +160,7 @@ HARD_DIFFICULTY_ICON_HOVER = Actor("difficulty_hard_icon_hover.png")
 HARD_DIFFICULTY_ICON_SELECT = Actor("difficulty_hard_icon_select.png")
 hard_difficulty_icon = HARD_DIFFICULTY_ICON_DEFAULT
 hard_difficulty_icon.x = 1950
-hard_difficulty_icon.y = 310
+hard_difficulty_icon.y = 330
 hard_difficulty_icon_area = [
     hard_difficulty_icon.x - (DIFFICULTY_ICON_WIDTH / 2),
     hard_difficulty_icon.x + (DIFFICULTY_ICON_WIDTH / 2),
@@ -206,6 +219,102 @@ game_bar_switcher_area = [
     game_bar_switcher.y + 48
     ]
 
+selected_slot = 0
+slot_selected = False
+
+# tower buttons
+
+# towers
+
+TOWER_SLOT_SIDE_LENGTH = 56 * 3
+
+TOWER_SLOT_ONE_EMPTY = Actor("tower_empty.png")
+TOWER_SLOT_ONE_ARCHER_LEFT = Actor("tower_archer_left.png")
+TOWER_SLOT_ONE_ARCHER_RIGHT = Actor("tower_archer_right.png")
+TOWER_SLOT_ONE_WIZARD_LEFT = Actor("tower_wizard_left.png")
+TOWER_SLOT_ONE_WIZARD_RIGHT = Actor("tower_wizard_right.png")
+TOWER_SLOT_ONE_IMP_LEFT = Actor("tower_imp_left.png")
+TOWER_SLOT_ONE_IMP_RIGHT = Actor("tower_imp_right.png")
+tower_slot_one = TOWER_SLOT_ONE_EMPTY
+tower_slot_one.x = 4500
+tower_slot_one.y = 390
+tower_slot_one_occupied = False
+tower_slot_one_area = [
+    tower_slot_one.x - (TOWER_SLOT_SIDE_LENGTH / 2),
+    tower_slot_one.x + (TOWER_SLOT_SIDE_LENGTH / 2),
+    tower_slot_one.y - (TOWER_SLOT_SIDE_LENGTH / 2),
+    tower_slot_one.y + (TOWER_SLOT_SIDE_LENGTH / 2)
+    ]
+tower_slot_one_stats = []
+
+TOWER_SLOT_TWO_EMPTY = Actor("tower_empty.png")
+TOWER_SLOT_TWO_ARCHER_LEFT = Actor("tower_archer_left.png")
+TOWER_SLOT_TWO_ARCHER_RIGHT = Actor("tower_archer_right.png")
+TOWER_SLOT_TWO_WIZARD_LEFT = Actor("tower_wizard_left.png")
+TOWER_SLOT_TWO_WIZARD_RIGHT = Actor("tower_wizard_right.png")
+TOWER_SLOT_TWO_IMP_LEFT = Actor("tower_imp_left.png")
+TOWER_SLOT_TWO_IMP_RIGHT = Actor("tower_imp_right.png")
+tower_slot_two = TOWER_SLOT_TWO_EMPTY
+tower_slot_two.x = 4860
+tower_slot_two.y = 320
+tower_slot_two_occupied = False
+tower_slot_two_area = [
+    tower_slot_two.x - (TOWER_SLOT_SIDE_LENGTH / 2),
+    tower_slot_two.x + (TOWER_SLOT_SIDE_LENGTH / 2),
+    tower_slot_two.y - (TOWER_SLOT_SIDE_LENGTH / 2),
+    tower_slot_two.y + (TOWER_SLOT_SIDE_LENGTH / 2)
+    ]
+tower_slot_two_stats = []
+
+TOWER_SLOT_THREE_EMPTY = Actor("tower_empty.png")
+TOWER_SLOT_THREE_ARCHER_LEFT = Actor("tower_archer_left.png")
+TOWER_SLOT_THREE_ARCHER_RIGHT = Actor("tower_archer_right.png")
+TOWER_SLOT_THREE_WIZARD_LEFT = Actor("tower_wizard_left.png")
+TOWER_SLOT_THREE_WIZARD_RIGHT = Actor("tower_wizard_right.png")
+TOWER_SLOT_THREE_IMP_LEFT = Actor("tower_imp_left.png")
+TOWER_SLOT_THREE_IMP_RIGHT = Actor("tower_imp_right.png")
+tower_slot_three = TOWER_SLOT_THREE_EMPTY
+tower_slot_three.x = 5220
+tower_slot_three.y = 360
+tower_slot_three_occupied = False
+tower_slot_three_area = [
+    tower_slot_three.x - (TOWER_SLOT_SIDE_LENGTH / 2),
+    tower_slot_three.x + (TOWER_SLOT_SIDE_LENGTH / 2),
+    tower_slot_three.y - (TOWER_SLOT_SIDE_LENGTH / 2),
+    tower_slot_three.y + (TOWER_SLOT_SIDE_LENGTH / 2)
+    ]
+tower_slot_three_stats = []
+
+TOWER_SELECTOR = Actor("opt_two_tower_select.png")
+TOWER_SELECTOR_HIDDEN = Actor("empty.png")
+tower_selector_ui = TOWER_SELECTOR_HIDDEN
+tower_selector_ui.x = -100
+tower_selector_ui.y = -100
+archer_select_ui_area = [
+    tower_selector_ui.x - (47 * 3) - (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.x - (47 * 3) + (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.y - (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.y + (UI_BUTTON_SIDE / 2)
+    ]
+cancel_select_ui_area = [
+    tower_selector_ui.x - (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.x + (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.y + (47 * 3) - (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.y + (47 * 3) + (UI_BUTTON_SIDE / 2)
+    ]
+wizard_select_ui_area = [
+    tower_selector_ui.x + (47 * 3) - (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.x + (47 * 3) + (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.y - (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.y + (UI_BUTTON_SIDE / 2)
+    ]
+imp_select_ui_area = [
+    tower_selector_ui.x - (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.x + (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.y - (47 * 3) - (UI_BUTTON_SIDE / 2),
+    tower_selector_ui.y - (47 * 3) + (UI_BUTTON_SIDE / 2)
+    ]
+
 # number values for difficulties being, in order:
 # none, easy, medium and hard
 difficulty = 0
@@ -223,6 +332,7 @@ def move_all(movement, direction):
     global easy_difficulty_icon, medium_difficulty_icon, hard_difficulty_icon
     global game_start_button, game_bar
     global drop_down_ui, drop_down_button
+    global tower_slot_one, tower_slot_two, tower_slot_three
     back_from_credits.x += movement * direction
     play_button.x += movement * direction
     credits_button.x += + movement * direction
@@ -239,8 +349,9 @@ def move_all(movement, direction):
     drop_down_button.x += movement * direction
     game_bar.x += movement * direction
     game_bar_switcher.x += movement * direction
-    
-
+    tower_slot_one.x += movement * direction
+    tower_slot_two.x += movement * direction
+    tower_slot_three.x += movement * direction
 
 
 def update():
@@ -255,6 +366,9 @@ def update():
     global game_start_button_area
     global drop_down_ui, drop_down_button_area, game_bar
     global game_bar_switcher_area, game_bar_switcher
+    global archer_button
+    global archer_select_ui_area, wizard_select_ui_area
+    global cancel_select_ui_area, imp_select_ui_area
     if FULL_MENU.x != SCREEN_X[current_screen]:
         if FULL_MENU.x >= SCREEN_X[current_screen]:
             direction = -1 # To the right
@@ -406,6 +520,30 @@ def update():
         game_bar_switcher.y - 48,
         game_bar_switcher.y + 48
     ]
+    archer_select_ui_area = [
+        tower_selector_ui.x - (47 * 3) - (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.x - (47 * 3) + (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.y - (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.y + (UI_BUTTON_SIDE / 2)
+    ]
+    cancel_select_ui_area = [
+        tower_selector_ui.x - (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.x + (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.y + (47 * 3) - (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.y + (47 * 3) + (UI_BUTTON_SIDE / 2)
+    ]
+    wizard_select_ui_area = [
+        tower_selector_ui.x + (47 * 3) - (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.x + (47 * 3) + (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.y - (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.y + (UI_BUTTON_SIDE / 2)
+    ]
+    imp_select_ui_area = [
+        tower_selector_ui.x - (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.x + (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.y - (47 * 3) - (UI_BUTTON_SIDE / 2),
+        tower_selector_ui.y - (47 * 3) + (UI_BUTTON_SIDE / 2)
+    ]
     PLAY_BUTTON_DEFAULT.pos = play_button.pos
     PLAY_BUTTON_HOVER.pos = play_button.pos
     BACK_FROM_CREDITS_DEFAULT.pos = back_from_credits.pos
@@ -459,7 +597,6 @@ def prepare_game():
     global FULL_MENU
     global game_start, current_screen, SCREEN_X
     current_screen = 3
-    
     
 
 def on_mouse_move(pos):
@@ -599,11 +736,57 @@ def on_mouse_move(pos):
                     drop_down_button = DROP_DOWN_BUTTON_UP_DEFAULT
 
 
+def select_slot(slot_actor, slot_number):
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_selector_ui
+    global slot_selected, selected_slot
+    tower_selector_ui.pos = slot_actor.pos
+    tower_selector_ui = TOWER_SELECTOR_DEFAULT
+    selected_slot = slot_number
+    slot_selected = True
+    print("gskawsgr")
+
+
+def place_tower(slot, tower):
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_occupied, tower_slot_two_occupied
+    global tower_slot_three_occupied, tower_selector_ui
+    global slot_selected
+    global ARCHER, WIZARD, IMP
+    tower_selector_ui = TOWER_SELECT_HIDDEN
+    if slot == 1:
+        if tower == ARCHER:
+            tower_slot_one = TOWER_SLOT_ONE_ARCHER_LEFT
+        elif tower == WIZARD:
+            tower_slot_one = TOWER_SLOT_ONE_WIZARD_LEFT
+        else:
+            tower_slot_one = TOWER_SLOT_ONE_IMP_LEFT
+        tower_slot_one_occupied
+    if slot == 2:
+        if tower == ARCHER:
+            tower_slot_two = TOWER_SLOT_TWO_ARCHER_LEFT
+        elif tower == WIZARD:
+            tower_slot_two = TOWER_SLOT_TWO_WIZARD_LEFT
+        else:
+            tower_slot_two = TOWER_SLOT_TWO_IMP_LEFT
+        tower_slot_two_occupied
+    if slot == 3:
+        if tower == ARCHER:
+            tower_slot_three = TOWER_SLOT_THREE_ARCHER_LEFT
+        elif tower == WIZARD:
+            tower_slot_three = TOWER_SLOT_THREE_WIZARD_LEFT
+        else:
+            tower_slot_three = TOWER_SLOT_THREE_IMP_LEFT
+        tower_slot_three_occupied
+    slot_selected = False
+
+
 def on_mouse_down(pos, button):
     global debug, debug_button
     global current_screen, difficulty
     global easy_difficulty_icon, medium_difficulty_icon
     global hard_difficulty_icon, drop_down_state, game_bar_state
+    global tower_selector_ui, slot_selected
     if game_start == False:
         if current_screen == 0:
             if (
@@ -711,6 +894,7 @@ def on_mouse_down(pos, button):
                         print("starting game")
                     prepare_game()
         if current_screen == 3:
+            print(slot_selected, tower_selector_ui.pos)
             if button == mouse.LEFT:
                 if (
                     pos[0] >= drop_down_button_area[0] and
@@ -732,6 +916,62 @@ def on_mouse_down(pos, button):
                         game_bar_state = 1
                     else:
                         game_bar_state = 0
+                if slot_selected == False:
+                    if (
+                        pos[0] >= tower_slot_one_area[0] and
+                        pos[0] <= tower_slot_one_area[1] and
+                        pos[1] >= tower_slot_one_area[2] and
+                        pos[1] <= tower_slot_one_area[3] and
+                        tower_slot_one_occupied == False
+                        ):
+                        select_slot(tower_slot_one, 1)
+                    if (
+                        pos[0] >= tower_slot_two_area[0] and
+                        pos[0] <= tower_slot_two_area[1] and
+                        pos[1] >= tower_slot_two_area[2] and
+                        pos[1] <= tower_slot_two_area[3] and
+                        tower_slot_two_occupied == False
+                        ):
+                        select_slot(tower_slot_two, 2)
+                    if (
+                        pos[0] >= tower_slot_three_area[0] and
+                        pos[0] <= tower_slot_three_area[1] and
+                        pos[1] >= tower_slot_three_area[2] and
+                        pos[1] <= tower_slot_three_area[3] and
+                        tower_slot_three_occupied == False
+                        ):
+                        select_slot(tower_slot_three, 3)
+                else:
+                    if (
+                        pos[0] >= archer_select_ui_area[0] and
+                        pos[0] <= archer_select_ui_area[1] and
+                        pos[1] >= archer_select_ui_area[2] and
+                        pos[1] <= archer_select_ui_area[3]
+                        ):
+                        place_tower(selected_slot, ARCHER)
+                    if (
+                        pos[0] >= wizard_select_ui_area[0] and
+                        pos[0] <= wizard_select_ui_area[1] and
+                        pos[1] >= wizard_select_ui_area[2] and
+                        pos[1] <= wizard_select_ui_area[3]
+                        ):
+                        place_tower(selected_slot, WIZARD)
+                    if (
+                        pos[0] >= imp_select_ui_area[0] and
+                        pos[0] <= imp_select_ui_area[1] and
+                        pos[1] >= imp_select_ui_area[2] and
+                        pos[1] <= imp_select_ui_area[3]
+                        ):
+                        place_tower(selected_slot, IMP)
+                    if (
+                        pos[0] >= cancel_select_ui_area[0] and
+                        pos[0] <= cancel_select_ui_area[1] and
+                        pos[1] >= cancel_select_ui_area[2] and
+                        pos[1] <= cancel_select_ui_area[3]
+                        ):
+                        slot_selected = False
+                        tower_selector_ui = TOWER_SELECTOR_HIDDEN
+                        
 
 
 def draw(): # Draw all the
@@ -746,11 +986,16 @@ def draw(): # Draw all the
     easy_difficulty_icon.draw()
     medium_difficulty_icon.draw()
     hard_difficulty_icon.draw()
+    tower_slot_one.draw()
+    tower_slot_two.draw()
+    tower_slot_three.draw()
     game_start_button.draw()
     game_bar.draw()
+    tower_selector_ui.draw()
     drop_down_ui.draw()
     game_bar_switcher.draw()
     drop_down_button.draw()
+    
     
 
 pgzrun.go() # This must be at the end of the code for it to run
