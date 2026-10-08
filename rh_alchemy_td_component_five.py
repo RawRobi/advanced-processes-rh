@@ -9,11 +9,12 @@ All images to be imported need to be to a scale of 3x
 WIDTH = 1080
 HEIGHT = 540
 game_started = 0
+lives = 5
 
 #This lets the screen move to designated points of each screen
 SCREEN_X = [3240.0, 2160.0, 1080.0, -2160.0]
 
-balance = 150000
+balance = 150
 
 # any time is done in frames
 TOWERS_STATS = [
@@ -48,18 +49,17 @@ ENEMY_SPEED = 15
 
 enemy_stats = [
 # Example:
-# [dropped cost, initial cooldown, base cooldown, sprite]
-    [20, 5 * 60, 60, 0, "slime"],
-    [60, 20 * 60, 300, 0, "zombie"],
-    [45, 45 * 60, 30, 0, "enemy_imp"]
+# [initial cooldown, base cooldown, sprite]
+    [5 * 60, 60, 0, "slime"],
+    [20 * 60, 300, 0, "zombie"],
+    [45 * 60, 30, 0, "enemy_imp"]
     ]
 
 
-ENEMY_DROPPED_COST = 0
-ENEMY_INITIAL_COOLDOWN = 1
-ENEMY_BASE_COOLDOWN = 2
-ENEMY_CURRENT_COOLDOWN = 3
-ENEMY_SPRITE = 4
+ENEMY_INITIAL_COOLDOWN = 0
+ENEMY_BASE_COOLDOWN = 1
+ENEMY_CURRENT_COOLDOWN = 2
+ENEMY_SPRITE = 3
 
 SLIME = 0
 ZOMBIE = 1
@@ -71,6 +71,7 @@ game_start = False
 
 FULL_MENU = Actor("full_menu")
 FULL_MENU.y = 270
+COST_DROPPED = 20
 
 spawned_enemies = []
 
@@ -80,7 +81,6 @@ spawned_projectiles = []
 # The states it can be (e.g. hovered, selected and default) are made
 # The coordinates of the button are put in.
 # Then the area (based off of the coordinates and the buttons dimensions)
-
 
 MENU_BUTTON_WIDTH = 360
 MENU_BUTTON_HEIGHT = 90
@@ -445,18 +445,115 @@ current_screen = 1
 FULL_MENU.x = SCREEN_X[current_screen]
 debug = False
 
+MONEY_DISPLAY = Actor("balance_background")
+MONEY_DISPLAY.x = 4500
+MONEY_DISPLAY.y = drop_down_button.y
+
+LIVES_DISPLAY = Actor("balance_background")
+LIVES_DISPLAY.x = 5220
+LIVES_DISPLAY.y = MONEY_DISPLAY.y
+
+brew_button_seperation = 20 + 96
+
+BREW_ONE_ITEM = Actor("brews1")
+BREW_ONE_DEFAULT = Actor("brew_button1")
+BREW_ONE_HOVER = Actor("brews_hover1")
+BREW_ONE_SELECT = Actor("brews_select1")
+brew_one_button = BREW_ONE_DEFAULT
+brew_one_button.x = 10
+brew_one_button.y = 10
+brew_button_one_area = [
+    brew_one_button.x - (UI_BUTTON_SIDE / 2),
+    brew_one_button.x + (UI_BUTTON_SIDE / 2),
+    brew_one_button.y - (UI_BUTTON_SIDE / 2),
+    brew_one_button.y + (UI_BUTTON_SIDE / 2)
+    ]
+
+BREW_TWO_ITEM = Actor("brews2")
+BREW_TWO_DEFAULT = Actor("brew_button2")
+BREW_TWO_HOVER = Actor("brews_hover2")
+BREW_TWO_SELECT = Actor("brews_select2")
+brew_two_button = BREW_TWO_DEFAULT
+brew_two_button.x = brew_one_button.x + brew_button_seperation
+
+brew_button_two_area = [
+    brew_two_button.x - (UI_BUTTON_SIDE / 2),
+    brew_two_button.x + (UI_BUTTON_SIDE / 2),
+    brew_two_button.y - (UI_BUTTON_SIDE / 2),
+    brew_two_button.y + (UI_BUTTON_SIDE / 2)
+    ]
+
+BREW_THREE_ITEM = Actor("brews3")
+BREW_THREE_DEFAULT = Actor("brew_button3")
+BREW_THREE_HOVER = Actor("brews_hover3")
+BREW_THREE_SELECT = Actor("brews_select3")
+brew_three_button = BREW_THREE_DEFAULT
+brew_three_button.x = brew_two_button.x + brew_button_seperation
+brew_three_button.y = brew_button_one.y
+brew_button_three_area = [
+    brew_three_button.x - (UI_BUTTON_SIDE / 2),
+    brew_three_button.x + (UI_BUTTON_SIDE / 2),
+    brew_three_button.y - (UI_BUTTON_SIDE / 2),
+    brew_three_button.y + (UI_BUTTON_SIDE / 2)
+    ]
+
+BREW_FOUR_ITEM = Actor("brews4")
+BREW_FOUR_DEFAULT = Actor("brew_button4")
+BREW_FOUR_HOVER = Actor("brews_hover4")
+BREW_FOUR_SELECT = Actor("brews_select4")
+brew_four_button = BREW_FOUR_DEFAULT
+brew_four_button.x = brew_button_one.x
+brew_four_button.y = brew_button_one.y + brew_button_seperation
+brew_button_four_area = [
+    brew_four_button.x - (UI_BUTTON_SIDE / 2),
+    brew_four_button.x + (UI_BUTTON_SIDE / 2),
+    brew_four_button.y - (UI_BUTTON_SIDE / 2),
+    brew_four_button.y + (UI_BUTTON_SIDE / 2)
+    ]
+
+BREW_FIVE_ITEM = Actor("brews5")
+BREW_FIVE_DEFAULT = Actor("brew_button5")
+BREW_FIVE_HOVER = Actor("brews_hover5")
+BREW_FIVE_SELECT = Actor("brews_select5")
+brew_five_button = BREW_FIVE_DEFAULT
+brew_five_button.x = brew_button_two.x
+brew_five_button.y = brew_button_one.y + brew_button_seperation
+brew_button_five_area = [
+    brew_five_button.x - (UI_BUTTON_SIDE / 2),
+    brew_five_button.x + (UI_BUTTON_SIDE / 2),
+    brew_five_button.y - (UI_BUTTON_SIDE / 2),
+    brew_five_button.y + (UI_BUTTON_SIDE / 2)
+    ]
+
+BREW_SIX_ITEM = Actor("brews6")
+BREW_SIX_DEFAULT = Actor("brew_button6")
+BREW_SIX_HOVER = Actor("brews_hover6")
+BREW_SIX_SELECT = Actor("brews_select6")
+brew_six_button = BREW_SIX_DEFAULT
+brew_six_button.x = brew_button_three.x
+brew_six_button.y = brew_button_one.y + brew_button_seperation
+brew_button_six_area = [
+    brew_six_button.x - (UI_BUTTON_SIDE / 2),
+    brew_six_button.x + (UI_BUTTON_SIDE / 2),
+    brew_six_button.y - (UI_BUTTON_SIDE / 2),
+    brew_six_button.y + (UI_BUTTON_SIDE / 2)
+    ]
+
+for i in range(6):
+    print(i)
+
 #
 # Seperate between functions and variables
 #
 
 def move_all(movement, direction):
     # To move all the buttons and the screen at the same time
-    global FULL_MENU
+    global FULL_MENU, LIVES_DISPLAY
     global back_from_credits
     global play_button, credits_button, debug_button
     global back_from_play, difficulty_display, current_difficulty_display
     global easy_difficulty_icon, medium_difficulty_icon, hard_difficulty_icon
-    global game_start_button, game_bar
+    global game_start_button, game_bar, MONEY_DISPLAY
     global drop_down_ui, drop_down_button
     global tower_slot_one, tower_slot_two, tower_slot_three
     back_from_credits.x += movement * direction
@@ -479,6 +576,8 @@ def move_all(movement, direction):
     tower_slot_two.x += movement * direction
     tower_slot_three.x += movement * direction
     start_game_button.x += movement * direction
+    MONEY_DISPLAY.x += movement * direction
+    LIVES_DISPLAY.x += movement * direction
 
 
 def spawn(actor_name, from_player):
@@ -574,15 +673,15 @@ def tick():
 
 
 def update():
-    global back_from_credits_area
-    global play_button_area
-    global credits_button_area
-    global debug_button_area
+    global back_from_credits_area, balance
+    global play_button_area, current_screen
+    global credits_button_area, game_started
+    global debug_button_area, LIVES_DISPLAY, lives
     global back_from_play_area, current_difficulty_display
     global easy_difficulty_icon_area, easy_difficulty_icon
     global medium_difficulty_icon_area, medium_difficulty_icon
     global hard_difficulty_icon_area, hard_difficulty_icon
-    global game_start_button_area
+    global game_start_button_area, MONEY_DISPLAY
     global drop_down_ui, drop_down_button_area, game_bar
     global game_bar_switcher_area, game_bar_switcher
     global archer_button, wizard_button, imp_button
@@ -650,6 +749,8 @@ def update():
             drop_down_button.y += move * direction
             game_bar_switcher.y += move * direction
             game_bar.y += move * direction
+            MONEY_DISPLAY.y += move * direction
+            LIVES_DISPLAY.y += move * direction
     # comment to seperate the functions
     if (
         current_screen == 3 and
@@ -898,12 +999,20 @@ def update():
             if enemy_index != -1:
                 del spawned_enemies[enemy_index]
                 spawned_projectiles.remove(projectile)
+                balance += COST_DROPPED
+                round(balance, 0)
             elif projectile.x < -32:
                 spawned_projectiles.remove(projectile)
-
         for enemy in spawned_enemies:
             enemy.x += ENEMY_SPEED
-            
+            if enemy.x > 1112:
+                spawned_enemies.remove(enemy)
+                lives -= 1
+
+        if lives == 0:
+            game_started = 0
+            current_screen = 1
+            lives = 5
 
 
 def prepare_game():
@@ -912,17 +1021,17 @@ def prepare_game():
 
 def start_game():
     global game_started
-    global difficulty
+    global difficulty, COST_DROPPED
     if difficulty == 1:
         multiplier = 1
     elif difficulty == 2:
-        multiplier = 1.4
+        multiplier = 1.2
     else:
-        multiplier = 1.8
+        multiplier = 1.6
     for enemy_stat in enemy_stats:
-        enemy_stat[ENEMY_DROPPED_COST] * multiplier
-        enemy_stat[ENEMY_INITIAL_COOLDOWN] / multiplier
-        enemy_stat[ENEMY_BASE_COOLDOWN] / multiplier
+        COST_DROPPED *= multiplier
+        enemy_stat[ENEMY_INITIAL_COOLDOWN] /= multiplier
+        enemy_stat[ENEMY_BASE_COOLDOWN] /= multiplier
     game_started = 1
     
 
@@ -1492,6 +1601,12 @@ def draw(): # Draw all the buttons/actors
     sell_select.draw()
     start_game_button.draw()
     game_bar.draw()
+    brew_one_button.draw()
+    brew_two_button.draw()
+    brew_three_button.draw()
+    brew_four_button.draw()
+    brew_five_button.draw()
+    brew_six_button.draw()
     archer_button.draw()
     wizard_button.draw()
     imp_button.draw()
@@ -1503,7 +1618,10 @@ def draw(): # Draw all the buttons/actors
         enemy.draw()
     for projectile in spawned_projectiles:
         projectile.draw()
-    
+    MONEY_DISPLAY.draw()
+    screen.draw.text(str(balance), (MONEY_DISPLAY.x - 49 * 3, MONEY_DISPLAY.y - 16 * 3), fontsize = 146)
+    LIVES_DISPLAY.draw()
+    screen.draw.text("Lives: " + str(lives), (LIVES_DISPLAY.x - 49 * 3, LIVES_DISPLAY.y - 16 * 3), fontsize = 100)
     
 
 pgzrun.go() # This must be at the end of the code for it to run
