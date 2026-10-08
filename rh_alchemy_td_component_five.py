@@ -1,6 +1,5 @@
 import pgzrun
 import random
-import math
 """
 COMPONENT TWO UPDATING ON FEEDBACK
 
@@ -21,9 +20,9 @@ TOWERS_STATS = [
 # Example:
 # [tower image, base cost, base cooldown, current cooldown, projectile sprite]
 ["empty"],
-["archer", 100, 75, 75, "archer_projectile"],
-["wizard", 250, 45, 25, "wizard_projectile"],
-["imp", 400, 25, 15, "imp_projectile"]
+["archer", 100, 80, 80, "archer_projectile"],
+["wizard", 250, 40, 40, "wizard_projectile"],
+["imp", 400, 20, 20, "imp_projectile"]
     ]
 
 # variables to call for specific stats, which makes the code
@@ -40,9 +39,8 @@ BASE_COOLDOWN = 2
 CURRENT_COOLDOWN = 3
 PROJECTILE_SPRITE = 4
 
-
-MAX_SPAWN_Y = 490
-MIN_SPAWN_Y = MAX_SPAWN_Y - 30
+MIN_SPAWN_Y = 480
+MAX_SPAWN_Y = MIN_SPAWN_Y + 30
 PROJECTILE_SPEED = -35
 ENEMY_SPEED = 15
 
@@ -51,9 +49,9 @@ ENEMY_SPEED = 15
 enemy_stats = [
 # Example:
 # [dropped cost, initial cooldown, base cooldown, sprite]
-    [20, 5 * 60, 60, 0, "slime", 30],
-    [60, 20 * 60, 300, 0, "zombie", 120],
-    [45, 45 * 60, 30, 0, "enemy_imp", 20]
+    [20, 5 * 60, 60, 0, "slime"],
+    [60, 20 * 60, 300, 0, "zombie"],
+    [45, 45 * 60, 30, 0, "enemy_imp"]
     ]
 
 
@@ -62,7 +60,6 @@ ENEMY_INITIAL_COOLDOWN = 1
 ENEMY_BASE_COOLDOWN = 2
 ENEMY_CURRENT_COOLDOWN = 3
 ENEMY_SPRITE = 4
-MINIMUM_COOLDOWN = 5
 
 SLIME = 0
 ZOMBIE = 1
@@ -316,13 +313,20 @@ TOWER_SLOT_ONE_EMPTY = Actor("tower_empty")
 TOWER_SLOT_ONE_ARCHER_LEFT = Actor("tower_archer_left")
 TOWER_SLOT_ONE_WIZARD_LEFT = Actor("tower_wizard_left")
 TOWER_SLOT_ONE_IMP_LEFT = Actor("tower_imp_left")
-TOWER_SLOT_ONE_ARCHER_RIGHT = Actor("tower_archer_right")
-TOWER_SLOT_ONE_WIZARD_RIGHT = Actor("tower_wizard_right")
-TOWER_SLOT_ONE_IMP_RIGHT = Actor("tower_imp_right")
+TOWER_SLOT_ONE_ARCHER_ANIMATION = []
+for i in range(8):
+    TOWER_SLOT_ONE_ARCHER_ANIMATION.append(Actor("tower_archer_left" + str(i + 1)))
+TOWER_SLOT_ONE_WIZARD_ANIMATION = []
+for i in range(4):
+    TOWER_SLOT_ONE_WIZARD_ANIMATION.append(Actor("tower_wizard_left" + str(i + 1)))
+TOWER_SLOT_ONE_IMP_ANIMATION = []
+for i in range(2):
+    TOWER_SLOT_ONE_IMP_ANIMATION.append(Actor("tower_imp_left" + str(i + 1)))
 tower_slot_one = TOWER_SLOT_ONE_EMPTY
 tower_slot_one.x = 4500
 tower_slot_one.y = 390
 tower_slot_one_occupied = False
+current_tower_one = ""
 tower_slot_one_area = [
     tower_slot_one.x - (TOWER_SLOT_SIDE_LENGTH / 2),
     tower_slot_one.x + (TOWER_SLOT_SIDE_LENGTH / 2),
@@ -335,13 +339,20 @@ TOWER_SLOT_TWO_EMPTY = Actor("tower_empty")
 TOWER_SLOT_TWO_ARCHER_LEFT = Actor("tower_archer_left")
 TOWER_SLOT_TWO_WIZARD_LEFT = Actor("tower_wizard_left")
 TOWER_SLOT_TWO_IMP_LEFT = Actor("tower_imp_left")
-TOWER_SLOT_TWO_ARCHER_RIGHT = Actor("tower_archer_right")
-TOWER_SLOT_TWO_WIZARD_RIGHT = Actor("tower_wizard_right")
-TOWER_SLOT_TWO_IMP_RIGHT = Actor("tower_imp_right")
+TOWER_SLOT_TWO_ARCHER_ANIMATION = []
+for i in range(8):
+    TOWER_SLOT_TWO_ARCHER_ANIMATION.append(Actor("tower_archer_left" + str(i + 1)))
+TOWER_SLOT_TWO_WIZARD_ANIMATION = []
+for i in range(4):
+    TOWER_SLOT_TWO_WIZARD_ANIMATION.append(Actor("tower_wizard_left" + str(i + 1)))
+TOWER_SLOT_TWO_IMP_ANIMATION = []
+for i in range(2):
+    TOWER_SLOT_TWO_IMP_ANIMATION.append(Actor("tower_imp_left" + str(i + 1)))
 tower_slot_two = TOWER_SLOT_TWO_EMPTY
 tower_slot_two.x = 4860
 tower_slot_two.y = 320
 tower_slot_two_occupied = False
+current_tower_two = ""
 tower_slot_two_area = [
     tower_slot_two.x - (TOWER_SLOT_SIDE_LENGTH / 2),
     tower_slot_two.x + (TOWER_SLOT_SIDE_LENGTH / 2),
@@ -354,13 +365,20 @@ TOWER_SLOT_THREE_EMPTY = Actor("tower_empty")
 TOWER_SLOT_THREE_ARCHER_LEFT = Actor("tower_archer_left")
 TOWER_SLOT_THREE_WIZARD_LEFT = Actor("tower_wizard_left")
 TOWER_SLOT_THREE_IMP_LEFT = Actor("tower_imp_left")
-TOWER_SLOT_THREE_ARCHER_RIGHT = Actor("tower_archer_right")
-TOWER_SLOT_THREE_WIZARD_RIGHT = Actor("tower_wizard_right")
-TOWER_SLOT_THREE_IMP_RIGHT = Actor("tower_imp_right")
+TOWER_SLOT_THREE_ARCHER_ANIMATION = []
+for i in range(8):
+    TOWER_SLOT_THREE_ARCHER_ANIMATION.append(Actor("tower_archer_left" + str(i + 1)))
+TOWER_SLOT_THREE_WIZARD_ANIMATION = []
+for i in range(4):
+    TOWER_SLOT_THREE_WIZARD_ANIMATION.append(Actor("tower_wizard_left" + str(i + 1)))
+TOWER_SLOT_THREE_IMP_ANIMATION = []
+for i in range(2):
+    TOWER_SLOT_THREE_IMP_ANIMATION.append(Actor("tower_imp_left" + str(i + 1)))
 tower_slot_three = TOWER_SLOT_THREE_EMPTY
 tower_slot_three.x = 5220
 tower_slot_three.y = 360
 tower_slot_three_occupied = False
+current_tower_three = ""
 tower_slot_three_area = [
     tower_slot_three.x - (TOWER_SLOT_SIDE_LENGTH / 2),
     tower_slot_three.x + (TOWER_SLOT_SIDE_LENGTH / 2),
@@ -463,22 +481,13 @@ def move_all(movement, direction):
     start_game_button.x += movement * direction
 
 
-def spawn(actor_name, from_player, tower_slot):
+def spawn(actor_name, from_player):
     global spawned_enemies, spawned_projectiles
     spawn = Actor(actor_name)
     spawn.y = random.randint(MIN_SPAWN_Y, MAX_SPAWN_Y)
     if from_player:
         spawn.x = 1112
-        if tower_slot == 1:
-            spawn.pos = tower_slot_one.pos
-        elif tower_slot == 2:
-            spawn.pos = tower_slot_two.pos
-        else:
-            spawn.pos = tower_slot_three.pos
-        if spawned_enemies:
-            spawn.angle = spawn.angle_to(spawned_enemies[-1].pos)
-        else:
-            spawn.angle = -180
+        spawn.angle = 180
         spawned_projectiles.append(spawn)
     else:
         spawn.x = -32
@@ -489,24 +498,71 @@ def spawn(actor_name, from_player, tower_slot):
 def tick():
     global enemy_stats
     global TOWERS_TOWERS_STATS
+    global tower_slot_one, tower_slot_two, tower_slot_three
     if tower_slot_one_occupied:
         if tower_slot_one_stats[CURRENT_COOLDOWN] != 0:
             tower_slot_one_stats[CURRENT_COOLDOWN] -= 1
         else:
-            spawn(tower_slot_one_stats[PROJECTILE_SPRITE], True, 1)
+            spawn(tower_slot_one_stats[PROJECTILE_SPRITE], True)
             tower_slot_one_stats[CURRENT_COOLDOWN] = tower_slot_one_stats[BASE_COOLDOWN]
+        if current_tower_one == "archer":
+            if tower_slot_one_stats[CURRENT_COOLDOWN] % 10 == 0:
+                tower_one_frame = int(7 - tower_slot_one_stats[CURRENT_COOLDOWN] / 10)
+                TOWER_SLOT_ONE_ARCHER_ANIMATION[tower_one_frame].pos = tower_slot_one.pos
+                tower_slot_one = TOWER_SLOT_ONE_ARCHER_ANIMATION[tower_one_frame]
+        elif current_tower_one == "wizard":
+            if tower_slot_one_stats[CURRENT_COOLDOWN] % 10 == 0:
+                tower_one_frame = int(3 - tower_slot_one_stats[CURRENT_COOLDOWN] / 10)
+                TOWER_SLOT_ONE_WIZARD_ANIMATION[tower_one_frame].pos = tower_slot_one.pos
+                tower_slot_one = TOWER_SLOT_ONE_WIZARD_ANIMATION[tower_one_frame]
+        elif current_tower_one == "imp":
+            if tower_slot_one_stats[CURRENT_COOLDOWN] % 10 == 0:
+                tower_one_frame = int(1 - tower_slot_one_stats[CURRENT_COOLDOWN] / 10)
+                TOWER_SLOT_ONE_IMP_ANIMATION[tower_one_frame].pos = tower_slot_one.pos
+                tower_slot_one = TOWER_SLOT_ONE_IMP_ANIMATION[tower_one_frame]
     if tower_slot_two_occupied:
         if tower_slot_two_stats[CURRENT_COOLDOWN] != 0:
             tower_slot_two_stats[CURRENT_COOLDOWN] -= 1
         else:
-            spawn(tower_slot_two_stats[PROJECTILE_SPRITE], True, 2)
+            spawn(tower_slot_two_stats[PROJECTILE_SPRITE], True)
             tower_slot_two_stats[CURRENT_COOLDOWN] = tower_slot_two_stats[BASE_COOLDOWN]
+        if current_tower_two == "archer":
+            if tower_slot_two_stats[CURRENT_COOLDOWN] % 10 == 0:
+                tower_two_frame = int(7 - tower_slot_two_stats[CURRENT_COOLDOWN] / 10)
+                TOWER_SLOT_TWO_ARCHER_ANIMATION[tower_two_frame].pos = tower_slot_two.pos
+                tower_slot_two = TOWER_SLOT_TWO_ARCHER_ANIMATION[tower_two_frame]
+        elif current_tower_two == "wizard":
+            if tower_slot_two_stats[CURRENT_COOLDOWN] % 10 == 0:
+                tower_two_frame = int(3 - tower_slot_two_stats[CURRENT_COOLDOWN] / 10)
+                TOWER_SLOT_TWO_WIZARD_ANIMATION[tower_two_frame].pos = tower_slot_two.pos
+                tower_slot_two = TOWER_SLOT_TWO_WIZARD_ANIMATION[tower_two_frame]
+        elif current_tower_two == "imp":
+            if tower_slot_two_stats[CURRENT_COOLDOWN] % 10 == 0:
+                tower_two_frame = int(1 - tower_slot_two_stats[CURRENT_COOLDOWN] / 10)
+                TOWER_SLOT_TWO_IMP_ANIMATION[tower_two_frame].pos = tower_slot_two.pos
+                tower_slot_two = TOWER_SLOT_TWO_IMP_ANIMATION[tower_two_frame]
     if tower_slot_three_occupied:
         if tower_slot_three_stats[CURRENT_COOLDOWN] != 0:
             tower_slot_three_stats[CURRENT_COOLDOWN] -= 1
         else:
-            spawn(tower_slot_three_stats[PROJECTILE_SPRITE], True, 3)
+            spawn(tower_slot_three_stats[PROJECTILE_SPRITE], True)
             tower_slot_three_stats[CURRENT_COOLDOWN] = tower_slot_three_stats[BASE_COOLDOWN]
+        if current_tower_three == "archer":
+            if tower_slot_three_stats[CURRENT_COOLDOWN] % 10 == 0:
+                tower_three_frame = int(7 - tower_slot_three_stats[CURRENT_COOLDOWN] / 10)
+                TOWER_SLOT_THREE_ARCHER_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
+                tower_slot_three = TOWER_SLOT_THREE_ARCHER_ANIMATION[tower_three_frame]
+        elif current_tower_three == "wizard":
+            if tower_slot_three_stats[CURRENT_COOLDOWN] % 10 == 0:
+                tower_three_frame = int(3 - tower_slot_three_stats[CURRENT_COOLDOWN] / 10)
+                TOWER_SLOT_THREE_WIZARD_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
+                tower_slot_three = TOWER_SLOT_THREE_WIZARD_ANIMATION[tower_three_frame]
+        elif current_tower_three == "imp":
+            if tower_slot_three_stats[CURRENT_COOLDOWN] % 10 == 0:
+                tower_three_frame = int(1 - tower_slot_three_stats[CURRENT_COOLDOWN] / 10)
+                TOWER_SLOT_THREE_IMP_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
+                tower_slot_three = TOWER_SLOT_THREE_IMP_ANIMATION[tower_three_frame]
+
     for enemy_stat in enemy_stats:
         if enemy_stat[ENEMY_INITIAL_COOLDOWN] != 0:
             enemy_stat[ENEMY_INITIAL_COOLDOWN] -= 1
@@ -514,7 +570,7 @@ def tick():
             enemy_stat[ENEMY_CURRENT_COOLDOWN] -= 1
         elif enemy_stat[ENEMY_CURRENT_COOLDOWN] == 0:
             enemy_stat[ENEMY_CURRENT_COOLDOWN] = enemy_stat[ENEMY_BASE_COOLDOWN]
-            spawn(enemy_stat[ENEMY_SPRITE], False, 0)
+            spawn(enemy_stat[ENEMY_SPRITE], False)
 
 
 def update():
@@ -837,31 +893,12 @@ def update():
             start_game_button = START_GAME_BUTTON_HIDDEN
         tick()
         for projectile in spawned_projectiles:
-            projectile.velocity = PROJECTILE_SPEED
+            projectile.x += PROJECTILE_SPEED
             enemy_index = projectile.collidelist(spawned_enemies)
-            if projectile.angle == 180:
-                projectile.x += PROJECTILE_SPEED
-            elif projectile.angle < -90:
-                angle_value = projectile.angle + 90
-            elif projectile.angle < 0:
-                angle_value = projectile_angle
-            try:
-                if projectile_angle:
-                    go_to = [
-                        math.degrees(math.cos(projectile_angle)) * PROJECTILE_SPEED,
-                        math.degrees(math.sin(projectile_angle)) * PROJECTILE_SPEED]
-                    projectile.pos += go_to
-            except NameError:
-                pass
-            projectile_angle = 0
             if enemy_index != -1:
                 del spawned_enemies[enemy_index]
                 spawned_projectiles.remove(projectile)
-            if (projectile.x < -32 or
-                projectile.x > 1112 or
-                projectile.y > 572 or
-                projectile.y < -32
-                ):
+            elif projectile.x < -32:
                 spawned_projectiles.remove(projectile)
 
         for enemy in spawned_enemies:
@@ -1104,7 +1141,8 @@ def place_tower(tower, slot):
     global selected_tower, current_tower
     global tower_slot_one_occupied, tower_slot_two_occupied
     global tower_slot_three_occupied, selected_tower
-    global balance
+    global balance, current_tower_one, current_tower_two
+    global current_tower_three
     for stat in TOWERS_STATS[tower]:
         if slot == 1:
             tower_slot_one_stats.append(stat)
@@ -1116,6 +1154,7 @@ def place_tower(tower, slot):
             tower_slot_three_stats.append(stat)
             tower_slot_three_occupied = True
     if slot == 1:
+        current_tower_one = TOWERS_STATS[selected_tower][0]
         if selected_tower == 1:
             tower_slot_one = TOWER_SLOT_ONE_ARCHER_LEFT
         elif selected_tower == 2:
@@ -1123,6 +1162,7 @@ def place_tower(tower, slot):
         else:
             tower_slot_one = TOWER_SLOT_ONE_IMP_LEFT
     elif slot == 2:
+        current_tower_two = TOWERS_STATS[selected_tower][0]
         if selected_tower == 1:
             tower_slot_two = TOWER_SLOT_TWO_ARCHER_LEFT
         elif selected_tower == 2:
@@ -1130,6 +1170,7 @@ def place_tower(tower, slot):
         else:
             tower_slot_two = TOWER_SLOT_TWO_IMP_LEFT	
     else:
+        current_tower_three = TOWERS_STATS[selected_tower][0]
         if selected_tower == 1:
             tower_slot_three = TOWER_SLOT_THREE_ARCHER_LEFT
         elif selected_tower == 2:
@@ -1178,16 +1219,19 @@ def sell_tower(tower_slot):
         tower_slot_one_occupied = False
         balance += tower_slot_one_stats[TOWER_COST]
         tower_slot_one_stats = []
+        current_tower_one = ""
     if tower_slot == 2:
         tower_slot_two = TOWER_SLOT_TWO_EMPTY
         tower_slot_two_occupied = False
         balance += tower_slot_two_stats[TOWER_COST]
         tower_slot_two_stats = []
+        current_tower_two = ""
     if tower_slot == 3:
         tower_slot_three = TOWER_SLOT_THREE_EMPTY
         tower_slot_three_occupied = False
         balance += tower_slot_three_stats[TOWER_COST]
         tower_slot_three_stats = []
+        current_tower_three = ""
 
     
 def on_mouse_down(pos, button):
