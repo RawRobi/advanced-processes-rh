@@ -474,10 +474,10 @@ BREW_STATS =[
 # tower attack rate mult
 [],
 [0],
-[50, 15 * 60, 3, 0],
+[50, 15 * 60, 3, 1],
 [125, 15 * 60, 0, 0.8],
 [250, 25 * 60, 4, 0.9],
-[300, 35 * 60, 7, 0],
+[300, 35 * 60, 7, 1],
 [500, 40 * 60, 0, 0.5]
     ]
 
@@ -588,7 +588,9 @@ buy_brew_button_area = [
 #
 
 def buy_brew():
-    global balance, selected_brew
+    global balance, selected_brew, drop_down_state
+    global current_brew
+    print(selected_brew, balance)
     balance -= BREW_STATS[selected_brew][0]
     current_brew = current_brews[selected_brew]
     drop_down_state = 1
@@ -642,12 +644,18 @@ def spawn(actor_name, from_player):
     
 
 def tick():
-    global enemy_stats
+    global enemy_stats, field_effects
     global TOWERS_STATS, balance
     global tower_slot_one, tower_slot_two, tower_slot_three
     # This tick allows for faster spawns and an increase
     # in difficulty over time
+    if balance >= 100000:
+        tick = 10
+    if balance >= 25000:
+        tick = 5
     if balance >= 10000:
+        tick = 4
+    if balance >= 3000:
         tick = 3
     elif balance >= 1000:
         tick = 2
@@ -710,6 +718,10 @@ def tick():
             if current_tower_three == "imp":
                 TOWER_SLOT_THREE_IMP_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
                 tower_slot_three = TOWER_SLOT_THREE_IMP_ANIMATION[tower_three_frame]
+    if field_effects[0] != 0:
+        field_effects[0] -= 1
+    else:
+        field_effects = [0, 0, 1]
 
 
     for enemy_stat in enemy_stats:
@@ -746,7 +758,8 @@ def update():
     global brew_button_two_area, brew_button_three_area
     global brew_button_four_area, brew_button_five_area
     global brew_button_six_area, buy_brew_button_area
-    global buy_brew_button, brew_descriptor
+    global buy_brew_button, brew_descriptor, tower_slot_one
+    global tower_slot_two, tower_slot_three
     # The following three "if" statements make it so the following
     # move smoothly:
     # menu screen, 
@@ -1166,8 +1179,12 @@ def update():
 
         if lives == 0:
             game_started = 0
-            del spawned_enemies[spawned_enemies]
             current_screen = 1
+            spawned_enemies = []
+            balance = 150
+            tower_slot_one = TOWER_SLOT_ONE_EMPTY
+            tower_slot_two = TOWER_SLOT_TWO_EMPTY
+            tower_slot_three = TOWER_SLOT_THREE_EMPTY
             lives = 5
 
 
@@ -1315,6 +1332,8 @@ def on_mouse_move(pos):
             else:
                 game_start_button = GAME_START_BUTTON_DEFAULT
     if current_screen == 3:
+        for brew in current_brews:
+            brew.pos = pos
         for tower_actor in CURRENT_TOWERS:
             tower_actor.pos = pos
         if (
@@ -1579,6 +1598,7 @@ def sell_tower(tower_slot):
 
 def use_brew():
     global selected_brew, field_effects, base_frames, enemy_speed
+    global current_brew
     if selected_brew == 1:
         spawn("glass_projectile", True)
     elif selected_brew != 0:
@@ -1589,6 +1609,7 @@ def use_brew():
         field_effects[2] *= BREW_STATS[selected_brew][3]
         base_frames = round(field_effects[2] * 10, 0)
     selected_brew = 0
+    current_brew = current_brews[0]
 
 
 def on_mouse_down(pos, button):
@@ -1706,7 +1727,7 @@ def on_mouse_down(pos, button):
                 prepare_game()
     if current_screen == 3:
         if button == mouse.LEFT:
-            if current_brew:
+            if current_brew != current_brews[0]:
                 use_brew()
             if (
                 pos[0] >= drop_down_button_area[0] and
@@ -1931,6 +1952,7 @@ def draw(): # Draw all the buttons/actors
     screen.draw.text(str(balance), (MONEY_DISPLAY.x - 49 * 3, MONEY_DISPLAY.y - 16 * 3), fontsize = 146)
     LIVES_DISPLAY.draw()
     screen.draw.text("Lives: " + str(lives), (LIVES_DISPLAY.x - 49 * 3, LIVES_DISPLAY.y - 16 * 3), fontsize = 100)
+    current_brew.draw()
     
 
 pgzrun.go() # This must be at the end of the code for it to run
