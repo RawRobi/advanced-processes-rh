@@ -47,7 +47,7 @@ base_frames = 10
 MIN_SPAWN_Y = 480
 MAX_SPAWN_Y = MIN_SPAWN_Y + 30
 PROJECTILE_SPEED = -35
-ENEMY_SPEED = 15
+ENEMY_SPEED = 12
 
 # enemies
 
@@ -596,43 +596,6 @@ game_over_bool = False
 # Seperator between functions and variables
 #
 
-def game_over():
-    # The function that resets everything when lives run out
-    global tower_slot_one, tower_slot_two, tower_slot_three
-    global tower_slot_one_occupied, current_tower_one
-    global tower_slot_two_occupied, current_tower_two
-    global tower_slot_three_occupied, current_tower_three
-    global enemy_stats, balance, difficulty
-    global field_effects, spawned_enemies, spawned_projectiles
-    global game_over_screen, current_tower, current_brew, selected_brew
-    global selected_tower, game_started, lives, current_screen
-    global game_over_bool
-    spawned_enemies = []
-    spawned_projectiles = []
-    field_effects = [0, 0, 1]
-    tower_slot_one = TOWER_SLOT_ONE_EMPTY
-    tower_slot_one_occupied = False
-    current_tower_one = ""
-    tower_slot_two = TOWER_SLOT_TWO_EMPTY
-    tower_slot_three_occupied = False
-    current_tower_three = False
-    tower_slot_three = TOWER_SLOT_THREE_EMPTY
-    tower_slot_three_occupied = False
-    current_tower_three = ""
-    selected_tower = 0
-    selected_brew = 0
-    current_tower = CURRENT_TOWERS[0]
-    current_brew = current_brews[0]
-    enemy_stats[0][0] = 5 * 60
-    enemy_stats[1][0] = 40 * 60
-    enemy_stats[2][0] = 65 * 60
-    enemy_stats[3][0] = 90 * 60
-    lives = 5
-    game_started = 0
-    current_screen = 1
-    game_over_bool = True
-    
-
 def buy_brew():
     # To set certain variables when buying a brew
     global balance, selected_brew, drop_down_state
@@ -677,6 +640,7 @@ def move_all(movement, direction):
 
 
 def spawn(actor_name, from_player):
+    # To spawn projectiles at the places 
     global spawned_enemies, spawned_projectiles
     spawn = Actor(actor_name)
     spawn.y = random.randint(MIN_SPAWN_Y, MAX_SPAWN_Y)
@@ -786,7 +750,774 @@ def tick():
         if game_over_time == 0:
             game_over_bool = False
             game_over_time = 300
-        
+
+
+def cancel_sell():
+    # Hides the sell menu
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_stats, tower_slot_two_stats
+    global tower_slot_three_stats, selling_tower_selected_number
+    global sell_select, selling_tower_selected
+    selling_tower_selected = False
+    sell_select = SELL_SELECT_HIDDEN
+
+
+def select_tower(tower):
+    # Selects tower to come up with the sell menu
+    global tower_selected_state, current_tower, drop_down_state
+    global selected_tower
+    current_tower = CURRENT_TOWERS[tower]
+    drop_down_state = 1 #hidden
+    tower_selected_state = 1
+    selected_tower = tower
+
+
+def place_tower(tower, slot):
+    # Place tower in specific slot, and changes specific variables
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_stats, tower_slot_two_stats
+    global tower_slot_three_stats, tower_selected_state
+    global selected_tower, current_tower
+    global tower_slot_one_occupied, tower_slot_two_occupied
+    global tower_slot_three_occupied, selected_tower
+    global balance, current_tower_one, current_tower_two
+    global current_tower_three
+    for stat in TOWERS_STATS[tower]:
+        if slot == 1:
+            tower_slot_one_stats.append(stat)
+            tower_slot_one_occupied = True
+        elif slot == 2:
+            tower_slot_two_stats.append(stat)
+            tower_slot_two_occupied = True
+        else:
+            tower_slot_three_stats.append(stat)
+            tower_slot_three_occupied = True
+    if slot == 1:
+        current_tower_one = TOWERS_STATS[selected_tower][0]
+        if selected_tower == 1:
+            tower_slot_one = TOWER_SLOT_ONE_ARCHER_LEFT
+        elif selected_tower == 2:
+            tower_slot_one = TOWER_SLOT_ONE_WIZARD_LEFT
+        else:
+            tower_slot_one = TOWER_SLOT_ONE_IMP_LEFT
+    elif slot == 2:
+        current_tower_two = TOWERS_STATS[selected_tower][0]
+        if selected_tower == 1:
+            tower_slot_two = TOWER_SLOT_TWO_ARCHER_LEFT
+        elif selected_tower == 2:
+            tower_slot_two = TOWER_SLOT_TWO_WIZARD_LEFT
+        else:
+            tower_slot_two = TOWER_SLOT_TWO_IMP_LEFT	
+    else:
+        current_tower_three = TOWERS_STATS[selected_tower][0]
+        if selected_tower == 1:
+            tower_slot_three = TOWER_SLOT_THREE_ARCHER_LEFT
+        elif selected_tower == 2:
+            tower_slot_three = TOWER_SLOT_THREE_WIZARD_LEFT
+        else:
+            tower_slot_three = TOWER_SLOT_THREE_IMP_LEFT
+    tower_selected_state = 0
+    balance -= TOWERS_STATS[tower][TOWER_COST]
+    selected_tower = 0
+    current_tower = CURRENT_TOWERS[EMPTY]
+
+
+def select_tower_to_sell(tower_actor, tower_slot):
+    # Makes the tower sell ui come up.
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_stats, tower_slot_two_stats
+    global tower_slot_three_stats, selling_tower_selected_number
+    global sell_select, selling_tower_selected
+    sell_select.pos = tower_actor.pos
+    SELL_SELECT_DEFAULT.pos = tower_actor.pos
+    sell_select = SELL_SELECT_DEFAULT
+    selling_tower_selected = True
+    selling_tower_selected_number = tower_slot
+
+
+def sell_tower(tower_slot):
+    # Sells tower, and resets the 
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_stats, tower_slot_two_stats
+    global tower_slot_three_stats, selling_tower_selected_number
+    global sell_select, selling_tower_selected
+    global balance
+    global tower_slot_one_occupied, tower_slot_two_occupied
+    global tower_slot_three_occupied
+    cancel_sell()
+    if tower_slot == 1:
+        tower_slot_one = TOWER_SLOT_ONE_EMPTY
+        tower_slot_one_occupied = False
+        balance += tower_slot_one_stats[TOWER_COST] * 0.8
+        tower_slot_one_stats = []
+        current_tower_one = ""
+    if tower_slot == 2:
+        tower_slot_two = TOWER_SLOT_TWO_EMPTY
+        tower_slot_two_occupied = False
+        balance += tower_slot_two_stats[TOWER_COST] * 0.8
+        tower_slot_two_stats = []
+        current_tower_two = ""
+    if tower_slot == 3:
+        tower_slot_three = TOWER_SLOT_THREE_EMPTY
+        tower_slot_three_occupied = False
+        balance += tower_slot_three_stats[TOWER_COST] * 0.8
+        tower_slot_three_stats = []
+        current_tower_three = ""
+
+
+def use_brew():
+    global selected_brew, field_effects, base_frames, enemy_speed
+    global current_brew
+    if selected_brew == 1:
+        spawn("glass_projectile", True)
+    elif selected_brew != 0:
+        field_effects[0] += BREW_STATS[selected_brew][1]
+        if field_effects[1] < BREW_STATS[selected_brew][2]:
+            field_effects[1] = BREW_STATS[selected_brew][2]
+            enemy_speed = field_effects[1]
+        field_effects[2] *= BREW_STATS[selected_brew][3]
+        base_frames = round(field_effects[2] * 10, 0)
+    selected_brew = 0
+    current_brew = current_brews[0]
+
+
+def prepare_game():
+    global current_screen
+    current_screen = 3
+
+def start_game():
+    global game_started
+    global difficulty, COST_DROPPED
+    if difficulty == 1:
+        multiplier = 1
+    elif difficulty == 2:
+        multiplier = 1.2
+    else:
+        multiplier = 1.6
+    for enemy_stat in enemy_stats:
+        COST_DROPPED *= multiplier
+        COST_DROPPED = round(COST_DROPPED, 1)
+        enemy_stat[ENEMY_INITIAL_COOLDOWN] /= multiplier
+        enemy_stat[ENEMY_BASE_COOLDOWN] /= multiplier
+    game_started = 1
+
+
+def game_over():
+    # The function that resets everything when lives run out
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_occupied, current_tower_one
+    global tower_slot_two_occupied, current_tower_two
+    global tower_slot_three_occupied, current_tower_three
+    global tower_slot_one_stats, tower_slot_two_stats
+    global tower_slot_three_stats
+    global enemy_stats, balance, difficulty
+    global field_effects, spawned_enemies, spawned_projectiles
+    global game_over_screen, current_tower, current_brew, selected_brew
+    global selected_tower, game_started, lives, current_screen
+    global game_over_bool
+    spawned_enemies = []
+    spawned_projectiles = []
+    field_effects = [0, 0, 1]
+    tower_slot_one = TOWER_SLOT_ONE_EMPTY
+    tower_slot_one_occupied = False
+    current_tower_one = ""
+    tower_slot_one_stats = []
+    tower_slot_two = TOWER_SLOT_TWO_EMPTY
+    tower_slot_two_occupied = False
+    current_tower_two = ""
+    tower_slot_two_stats = []
+    tower_slot_three = TOWER_SLOT_THREE_EMPTY
+    tower_slot_three_occupied = False
+    current_tower_three = ""
+    tower_slot_three_stats = []
+    selected_tower = 0
+    selected_brew = 0
+    current_tower = CURRENT_TOWERS[0]
+    current_brew = current_brews[0]
+    enemy_stats[0][0] = 5 * 60
+    enemy_stats[1][0] = 40 * 60
+    enemy_stats[2][0] = 65 * 60
+    enemy_stats[3][0] = 90 * 60
+    lives = 5
+    game_started = 0
+    current_screen = 1
+    game_over_bool = True
+    cancel_sell()
+    
+
+def on_mouse_move(pos):
+    global debug
+    global back_from_credits, play_button
+    global credits_button, debug_button, back_from_play
+    global difficulty, easy_difficulty_icon
+    global medium_difficulty_icon, hard_difficulty_icon
+    global game_start_button, drop_down_button, tower_selected_state
+    global archer_button, wizard_button, imp_button, sell_select_area
+    global start_game_button, brew_one_button, brew_two_button
+    global brew_three_button, brew_four_button, brew_five_button
+    global brew_six_button, selected_brew, buy_brew_button
+    if current_screen == 0:
+        if (
+            pos[0] >= back_from_credits_area[0] and
+            pos[0] <= back_from_credits_area[1] and
+            pos[1] >= back_from_credits_area[2] and
+            pos[1] <= back_from_credits_area[3]
+            ):
+            if debug:
+                print("back to home page")
+            back_from_credits = BACK_FROM_CREDITS_HOVER
+        else:
+            back_from_credits = BACK_FROM_CREDITS_DEFAULT
+    if current_screen == 1:
+        if (
+            pos[0] >= play_button_area[0] and
+            pos[0] <= play_button_area[1] and
+            pos[1] >= play_button_area[2] and
+            pos[1] <= play_button_area[3]
+            ):
+            if debug:
+                print("hover play buton")
+            play_button = PLAY_BUTTON_HOVER
+        else:
+            play_button = PLAY_BUTTON_DEFAULT
+        if (
+            pos[0] >= credits_button_area[0] and
+            pos[0] <= credits_button_area[1] and
+            pos[1] >= credits_button_area[2] and
+            pos[1] <= credits_button_area[3]
+            ):
+            if debug:
+                print("You are hovering the credits button")
+            credits_button = CREDITS_BUTTON_HOVER
+        else:
+            credits_button = CREDITS_BUTTON_DEFAULT
+        if (
+            pos[0] >= debug_button_area[0] and
+            pos[0] <= debug_button_area[1] and
+            pos[1] >= debug_button_area[2] and
+            pos[1] <= debug_button_area[3]
+            ):
+            if debug == True:
+                print("hover debug buton")
+                debug_button = DEBUG_BUTTON_ON_HOVER
+            if debug == False:
+                debug_button = DEBUG_BUTTON_OFF_HOVER
+        else:
+            if debug:
+                debug_button = DEBUG_BUTTON_ON
+            else:
+                debug_button = DEBUG_BUTTON_OFF
+    if current_screen == 2:
+        if (
+            pos[0] >= back_from_play_area[0] and
+            pos[0] <= back_from_play_area[1] and
+            pos[1] >= back_from_play_area[2] and
+            pos[1] <= back_from_play_area[3]
+            ):
+            if debug == True:
+                print("Home button")
+            back_from_play = BACK_FROM_PLAY_HOVER
+        else:
+            back_from_play = BACK_FROM_PLAY_DEFAULT
+        if (
+            pos[0] >= easy_difficulty_icon_area[0] and
+            pos[0] <= easy_difficulty_icon_area[1] and
+            pos[1] >= easy_difficulty_icon_area[2] and
+            pos[1] <= easy_difficulty_icon_area[3] and
+            difficulty != 1
+            ):
+            if debug == True:
+                print("easy difficulty")
+            easy_difficulty_icon = EASY_DIFFICULTY_ICON_HOVER
+        elif difficulty != 1:
+            easy_difficulty_icon = EASY_DIFFICULTY_ICON_DEFAULT
+        if (
+            pos[0] >= medium_difficulty_icon_area[0] and
+            pos[0] <= medium_difficulty_icon_area[1] and
+            pos[1] >= medium_difficulty_icon_area[2] and
+            pos[1] <= medium_difficulty_icon_area[3] and
+            difficulty != 2
+            ):
+            if debug == True:
+                print("medium difficulty")
+            medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_HOVER
+        elif difficulty != 2:
+            medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_DEFAULT
+        if (
+            pos[0] >= hard_difficulty_icon_area[0] and
+            pos[0] <= hard_difficulty_icon_area[1] and
+            pos[1] >= hard_difficulty_icon_area[2] and
+            pos[1] <= hard_difficulty_icon_area[3] and
+            difficulty != 3
+            ):
+            if debug == True:
+                print("hard difficulty")
+            hard_difficulty_icon = HARD_DIFFICULTY_ICON_HOVER
+        elif difficulty != 3:
+            hard_difficulty_icon = HARD_DIFFICULTY_ICON_DEFAULT
+        if difficulty != 0:
+            if (
+                pos[0] >= game_start_button_area[0] and
+                pos[0] <= game_start_button_area[1] and
+                pos[1] >= game_start_button_area[2] and
+                pos[1] <= game_start_button_area[3]
+                ):
+                if debug:
+                    print("Hovering start button")
+                game_start_button = GAME_START_BUTTON_HOVER
+            else:
+                game_start_button = GAME_START_BUTTON_DEFAULT
+    if current_screen == 3:
+        for brew in current_brews:
+            brew.pos = pos
+        for tower_actor in CURRENT_TOWERS:
+            tower_actor.pos = pos
+        if (
+            pos[0] >= drop_down_button_area[0] and
+            pos[0] <= drop_down_button_area[1] and
+            pos[1] >= drop_down_button_area[2] and
+            pos[1] <= drop_down_button_area[3]
+            ):
+            if tower_selected_state == 0:
+                if drop_down_state == 1: # hidden, so the button faces down
+                    drop_down_button = DROP_DOWN_BUTTON_DOWN_HOVER
+                else:
+                    drop_down_button = DROP_DOWN_BUTTON_UP_HOVER
+            else:
+                drop_down_button = UNSELECT_TOWER_BUTTON_HOVER
+        else:
+            if tower_selected_state == 0:
+                if drop_down_state == 1:
+                    drop_down_button = DROP_DOWN_BUTTON_DOWN_DEFAULT
+                else:
+                    drop_down_button = DROP_DOWN_BUTTON_UP_DEFAULT
+            else:
+                drop_down_button = UNSELECT_TOWER_BUTTON_DEFAULT
+        if balance >= TOWERS_STATS[ARCHER][TOWER_COST]:
+            if (
+                pos[0] >= archer_button_area[0] and
+                pos[0] <= archer_button_area[1] and
+                pos[1] >= archer_button_area[2] and
+                pos[1] <= archer_button_area[3]
+                ):
+                archer_button = ARCHER_BUTTON_HOVER
+            else:
+                archer_button = ARCHER_BUTTON_DEFAULT
+        else:
+            archer_button = ARCHER_BUTTON_UNSELECTABLE
+        if balance >= TOWERS_STATS[WIZARD][TOWER_COST]:
+            if (
+                pos[0] >= wizard_button_area[0] and
+                pos[0] <= wizard_button_area[1] and
+                pos[1] >= wizard_button_area[2] and
+                pos[1] <= wizard_button_area[3]
+                ):
+                wizard_button = WIZARD_BUTTON_HOVER
+            else:
+                wizard_button = WIZARD_BUTTON_DEFAULT
+        else:
+            wizard_button = WIZARD_BUTTON_UNSELECTABLE
+        if balance >= TOWERS_STATS[IMP][TOWER_COST]:
+            if (
+                pos[0] >= imp_button_area[0] and
+                pos[0] <= imp_button_area[1] and
+                pos[1] >= imp_button_area[2] and
+                pos[1] <= imp_button_area[3]
+                ):
+                imp_button = IMP_BUTTON_HOVER
+            else:
+                imp_button = IMP_BUTTON_DEFAULT
+        else:
+            imp_button = IMP_BUTTON_UNSELECTABLE
+        if (
+            pos[0] >= start_game_button_area[0] and
+            pos[0] <= start_game_button_area[1] and
+            pos[1] >= start_game_button_area[2] and
+            pos[1] <= start_game_button_area[3] and
+            game_started != 1
+            ):
+            start_game_button = START_GAME_BUTTON_HOVER
+        else:
+            start_game_button = START_GAME_BUTTON_DEFAULT
+        if balance >= BREW_STATS[1][0] and selected_brew != 1:
+            if (
+                pos[0] >= brew_button_one_area[0] and
+                pos[0] <= brew_button_one_area[1] and
+                pos[1] >= brew_button_one_area[2] and
+                pos[1] <= brew_button_one_area[3]
+                ):
+                brew_one_button = BREW_ONE_HOVER
+            else:
+                brew_one_button = BREW_ONE_DEFAULT
+        else:
+            brew_one_button = BREW_ONE_UNSELECTABLE
+        if balance >= BREW_STATS[2][0] and selected_brew != 2:
+            if (
+                pos[0] >= brew_button_two_area[0] and
+                pos[0] <= brew_button_two_area[1] and
+                pos[1] >= brew_button_two_area[2] and
+                pos[1] <= brew_button_two_area[3]
+                ):
+                brew_two_button = BREW_TWO_HOVER
+            else:
+                brew_two_button = BREW_TWO_DEFAULT
+        else:
+            brew_two_button = BREW_TWO_UNSELECTABLE
+        if balance >= BREW_STATS[3][0] and selected_brew != 3:
+            if (
+                pos[0] >= brew_button_three_area[0] and
+                pos[0] <= brew_button_three_area[1] and
+                pos[1] >= brew_button_three_area[2] and
+                pos[1] <= brew_button_three_area[3]
+                ):
+                brew_three_button = BREW_THREE_HOVER
+            else:
+                brew_three_button = BREW_THREE_DEFAULT
+        else:
+            brew_three_button = BREW_THREE_UNSELECTABLE
+        if balance >= BREW_STATS[4][0] and selected_brew != 4:
+            if (
+                pos[0] >= brew_button_four_area[0] and
+                pos[0] <= brew_button_four_area[1] and
+                pos[1] >= brew_button_four_area[2] and
+                pos[1] <= brew_button_four_area[3]
+                ):
+                brew_four_button = BREW_FOUR_HOVER
+            else:
+                brew_four_button = BREW_FOUR_DEFAULT
+        else:
+            brew_four_button = BREW_FOUR_UNSELECTABLE
+        if balance >= BREW_STATS[5][0] and selected_brew != 5:
+            if (
+                pos[0] >= brew_button_five_area[0] and
+                pos[0] <= brew_button_five_area[1] and
+                pos[1] >= brew_button_five_area[2] and
+                pos[1] <= brew_button_five_area[3]
+                ):
+                brew_five_button = BREW_FIVE_HOVER
+            else:
+                brew_five_button = BREW_FIVE_DEFAULT
+        else:
+            brew_five_button = BREW_FIVE_UNSELECTABLE
+        if balance >= BREW_STATS[6][0] and selected_brew != 6:
+            if (
+                pos[0] >= brew_button_six_area[0] and
+                pos[0] <= brew_button_six_area[1] and
+                pos[1] >= brew_button_six_area[2] and
+                pos[1] <= brew_button_six_area[3]
+                ):
+                brew_six_button = BREW_SIX_HOVER
+            else:
+                brew_six_button = BREW_SIX_DEFAULT
+        else:
+            brew_six_button = BREW_SIX_UNSELECTABLE
+        if selected_brew != 0:
+            if (
+                pos[0] >= buy_brew_button_area[0] and
+                pos[0] <= buy_brew_button_area[1] and
+                pos[1] >= buy_brew_button_area[2] and
+                pos[1] <= buy_brew_button_area[3]
+                ):
+                buy_brew_button = BUY_BREW_HOVER
+            else:
+                buy_brew_button = BUY_BREW_DEFAULT
+
+
+def on_mouse_down(pos, button):
+    global debug, debug_button
+    global current_screen, difficulty
+    global easy_difficulty_icon, medium_difficulty_icon
+    global hard_difficulty_icon, drop_down_state, game_bar_state
+    global current_tower, tower_selected_state
+    global selling_tower_selected_number, start_game_button
+    global selected_brew, buy_brew_button
+    if current_screen == 0:
+        if (
+            pos[0] >= back_from_credits_area[0] and
+            pos[0] <= back_from_credits_area[1] and
+            pos[1] >= back_from_credits_area[2] and
+            pos[1] <= back_from_credits_area[3] and
+            mouse.LEFT == button
+            ):
+            if debug == True:
+                print("back to home page")
+            current_screen = 1
+    if current_screen == 1:
+        if (
+            pos[0] >= play_button_area[0] and
+            pos[0] <= play_button_area[1] and
+            pos[1] >= play_button_area[2] and
+            pos[1] <= play_button_area[3] and
+            mouse.LEFT == button
+            ):
+            if debug == True:
+                print("Congrats, you pressed the PLAY button.")
+            current_screen = 2
+        if (
+            pos[0] >= credits_button_area[0] and
+            pos[0] <= credits_button_area[1] and
+            pos[1] >= credits_button_area[2] and
+            pos[1] <= credits_button_area[3] and
+            mouse.LEFT == button
+            ):
+            if debug == True:
+                print("Congrats, you pressed the CREDITS button.")
+            current_screen = 0
+        if (
+            pos[0] >= debug_button_area[0] and
+            pos[0] <= debug_button_area[1] and
+            pos[1] >= debug_button_area[2] and
+            pos[1] <= debug_button_area[3] and
+            mouse.LEFT == button
+            ):
+            if debug == True:
+                print("DEBUG is off now.")
+                debug_button = DEBUG_BUTTON_OFF
+                debug = False
+            elif debug == False:
+                print("DEBUG is on now.")
+                debug_button = DEBUG_BUTTON_ON
+                debug = True
+    if current_screen == 2:
+        if (
+            pos[0] >= back_from_play_area[0] and
+            pos[0] <= back_from_play_area[1] and
+            pos[1] >= back_from_play_area[2] and
+            pos[1] <= back_from_play_area[3] and
+            mouse.LEFT == button
+            ):
+            if debug == True:
+                print("back to home page")
+            current_screen = 1
+        if difficulty != 1:
+            if (
+                pos[0] >= easy_difficulty_icon_area[0] and
+                pos[0] <= easy_difficulty_icon_area[1] and
+                pos[1] >= easy_difficulty_icon_area[2] and
+                pos[1] <= easy_difficulty_icon_area[3] and
+                mouse.LEFT == button
+                ):
+                if debug == True:
+                    print("easy difficulty pressed")
+                easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
+                difficulty = 1
+        if difficulty != 2:
+            if (
+                pos[0] >= medium_difficulty_icon_area[0] and
+                pos[0] <= medium_difficulty_icon_area[1] and
+                pos[1] >= medium_difficulty_icon_area[2] and
+                pos[1] <= medium_difficulty_icon_area[3] and
+                mouse.LEFT == button
+                ):
+                if debug == True:
+                    print("medium difficulty pressed")
+                medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_SELECT
+                difficulty = 2
+        if difficulty != 3:
+            if (
+                pos[0] >= hard_difficulty_icon_area[0] and
+                pos[0] <= hard_difficulty_icon_area[1] and
+                pos[1] >= hard_difficulty_icon_area[2] and
+                pos[1] <= hard_difficulty_icon_area[3] and
+                mouse.LEFT == button
+                ):
+                if debug == True:
+                    print("hard difficulty pressed")
+                hard_difficulty_icon = HARD_DIFFICULTY_ICON_SELECT
+                difficulty = 3
+        if difficulty != 0:
+            if (
+                pos[0] >= game_start_button_area[0] and
+                pos[0] <= game_start_button_area[1] and
+                pos[1] >= game_start_button_area[2] and
+                pos[1] <= game_start_button_area[3] and
+                mouse.LEFT == button
+                ):
+                if debug:
+                    print("starting game")
+                prepare_game()
+    if current_screen == 3:
+        if button == mouse.LEFT:
+            if current_brew != current_brews[0]:
+                use_brew()
+            if (
+                pos[0] >= drop_down_button_area[0] and
+                pos[0] <= drop_down_button_area[1] and
+                pos[1] >= drop_down_button_area[2] and
+                pos[1] <= drop_down_button_area[3]
+                ):
+                if tower_selected_state == 0:
+                    if drop_down_state == 0:
+                        drop_down_state = 1
+                    else:
+                        drop_down_state = 0
+                else:
+                    current_tower = CURRENT_TOWERS[EMPTY]
+                    tower_selected_state = 0
+            if (
+                pos[0] >= game_bar_switcher_area[0] and
+                pos[0] <= game_bar_switcher_area[1] and
+                pos[1] >= game_bar_switcher_area[2] and
+                pos[1] <= game_bar_switcher_area[3]
+                ):
+                if game_bar_state == 0:
+                    game_bar_state = 1
+                else:
+                    game_bar_state = 0
+            if balance >= TOWERS_STATS[ARCHER][TOWER_COST]:
+                if (
+                    pos[0] >= archer_button_area[0] and
+                    pos[0] <= archer_button_area[1] and
+                    pos[1] >= archer_button_area[2] and
+                    pos[1] <= archer_button_area[3]
+                    ):
+                    select_tower(ARCHER)
+            if balance >= TOWERS_STATS[WIZARD][TOWER_COST]:
+                if (
+                    pos[0] >= wizard_button_area[0] and
+                    pos[0] <= wizard_button_area[1] and
+                    pos[1] >= wizard_button_area[2] and
+                    pos[1] <= wizard_button_area[3]
+                    ):
+                    select_tower(WIZARD)
+            if balance >= TOWERS_STATS[IMP][TOWER_COST]:
+                if (
+                    pos[0] >= imp_button_area[0] and
+                    pos[0] <= imp_button_area[1] and
+                    pos[1] >= imp_button_area[2] and
+                    pos[1] <= imp_button_area[3]
+                    ):
+                    select_tower(IMP)
+            if tower_selected_state == 1:
+                if (
+                    pos[0] >= tower_slot_one_area[0] and
+                    pos[0] <= tower_slot_one_area[1] and
+                    pos[1] >= tower_slot_one_area[2] and
+                    pos[1] <= tower_slot_one_area[3] and
+                    tower_slot_one_occupied == False
+                    ):
+                    place_tower(selected_tower, 1)
+                if (
+                    pos[0] >= tower_slot_two_area[0] and
+                    pos[0] <= tower_slot_two_area[1] and
+                    pos[1] >= tower_slot_two_area[2] and
+                    pos[1] <= tower_slot_two_area[3] and
+                    tower_slot_two_occupied == False
+                    ):
+                    place_tower(selected_tower, 2)
+                if (
+                    pos[0] >= tower_slot_three_area[0] and
+                    pos[0] <= tower_slot_three_area[1] and
+                    pos[1] >= tower_slot_three_area[2] and
+                    pos[1] <= tower_slot_three_area[3] and
+                    tower_slot_three_occupied == False
+                    ):
+                    place_tower(selected_tower, 3)
+            if selling_tower_selected == False:
+                if (
+                    pos[0] >= tower_slot_one_area[0] and
+                    pos[0] <= tower_slot_one_area[1] and
+                    pos[1] >= tower_slot_one_area[2] and
+                    pos[1] <= tower_slot_one_area[3] and
+                    tower_slot_one_occupied == True
+                    ):
+                    select_tower_to_sell(tower_slot_one, 1)
+                if (
+                    pos[0] >= tower_slot_two_area[0] and
+                    pos[0] <= tower_slot_two_area[1] and
+                    pos[1] >= tower_slot_two_area[2] and
+                    pos[1] <= tower_slot_two_area[3] and
+                    tower_slot_two_occupied == True
+                    ):
+                    select_tower_to_sell(tower_slot_two, 2)
+                if (
+                    pos[0] >= tower_slot_three_area[0] and
+                    pos[0] <= tower_slot_three_area[1] and
+                    pos[1] >= tower_slot_three_area[2] and
+                    pos[1] <= tower_slot_three_area[3] and
+                    tower_slot_three_occupied == True
+                    ):
+                    select_tower_to_sell(tower_slot_three, 3)
+            else:
+                if (
+                    pos[0] >= sell_select_area[0] and
+                    pos[0] <= sell_select_area[1] and
+                    pos[1] >= sell_select_area[2] and
+                    pos[1] <= sell_select_area[3]
+                    ):
+                    sell_tower(selling_tower_selected_number)
+                if (
+                    pos[0] >= cancel_area[0] and
+                    pos[0] <= cancel_area[1] and
+                    pos[1] >= cancel_area[2] and
+                    pos[1] <= cancel_area[3]
+                    ):
+                    cancel_sell()
+            if (
+                pos[0] >= start_game_button_area[0] and
+                pos[0] <= start_game_button_area[1] and
+                pos[1] >= start_game_button_area[2] and
+                pos[1] <= start_game_button_area[3] and
+                game_started != 1
+                ):
+                start_game()
+        if balance >= BREW_STATS[1][0] and selected_brew != 1:
+            if (
+                pos[0] >= brew_button_one_area[0] and
+                pos[0] <= brew_button_one_area[1] and
+                pos[1] >= brew_button_one_area[2] and
+                pos[1] <= brew_button_one_area[3]
+                ):
+                selected_brew = 1
+        if balance >= BREW_STATS[2][0] and selected_brew != 2:
+            if (
+                pos[0] >= brew_button_two_area[0] and
+                pos[0] <= brew_button_two_area[1] and
+                pos[1] >= brew_button_two_area[2] and
+                pos[1] <= brew_button_two_area[3]
+                ):
+                selected_brew = 2
+        if balance >= BREW_STATS[3][0] and selected_brew != 3:
+            if (
+                pos[0] >= brew_button_three_area[0] and
+                pos[0] <= brew_button_three_area[1] and
+                pos[1] >= brew_button_three_area[2] and
+                pos[1] <= brew_button_three_area[3]
+                ):
+                selected_brew = 3
+        if balance >= BREW_STATS[4][0] and selected_brew != 4:
+            if (
+                pos[0] >= brew_button_four_area[0] and
+                pos[0] <= brew_button_four_area[1] and
+                pos[1] >= brew_button_four_area[2] and
+                pos[1] <= brew_button_four_area[3]
+                ):
+                selected_brew = 4
+        if balance >= BREW_STATS[5][0] and selected_brew != 5:
+            if (
+                pos[0] >= brew_button_five_area[0] and
+                pos[0] <= brew_button_five_area[1] and
+                pos[1] >= brew_button_five_area[2] and
+                pos[1] <= brew_button_five_area[3]
+                ):
+                selected_brew = 5
+        if balance >= BREW_STATS[6][0] and selected_brew != 6:
+            if (
+                pos[0] >= brew_button_six_area[0] and
+                pos[0] <= brew_button_six_area[1] and
+                pos[1] >= brew_button_six_area[2] and
+                pos[1] <= brew_button_six_area[3]
+                ):
+                selected_brew = 6
+        if selected_brew != 0:
+            if (
+                pos[0] >= buy_brew_button_area[0] and
+                pos[0] <= buy_brew_button_area[1] and
+                pos[1] >= buy_brew_button_area[2] and
+                pos[1] <= buy_brew_button_area[3]
+                ):
+                buy_brew()
+
 
 def update():
     # These all happen 60 times a second.
@@ -1240,727 +1971,6 @@ def update():
 
         if lives == 0:
             game_over()
-
-
-def prepare_game():
-    global current_screen
-    current_screen = 3
-
-def start_game():
-    global game_started
-    global difficulty, COST_DROPPED
-    if difficulty == 1:
-        multiplier = 1
-    elif difficulty == 2:
-        multiplier = 1.2
-    else:
-        multiplier = 1.6
-    for enemy_stat in enemy_stats:
-        COST_DROPPED *= multiplier
-        COST_DROPPED = round(COST_DROPPED, 1)
-        enemy_stat[ENEMY_INITIAL_COOLDOWN] /= multiplier
-        enemy_stat[ENEMY_BASE_COOLDOWN] /= multiplier
-    game_started = 1
-    
-
-def on_mouse_move(pos):
-    global debug
-    global back_from_credits, play_button
-    global credits_button, debug_button, back_from_play
-    global difficulty, easy_difficulty_icon
-    global medium_difficulty_icon, hard_difficulty_icon
-    global game_start_button, drop_down_button, tower_selected_state
-    global archer_button, wizard_button, imp_button, sell_select_area
-    global start_game_button, brew_one_button, brew_two_button
-    global brew_three_button, brew_four_button, brew_five_button
-    global brew_six_button, selected_brew, buy_brew_button
-    if current_screen == 0:
-        if (
-            pos[0] >= back_from_credits_area[0] and
-            pos[0] <= back_from_credits_area[1] and
-            pos[1] >= back_from_credits_area[2] and
-            pos[1] <= back_from_credits_area[3]
-            ):
-            if debug:
-                print("back to home page")
-            back_from_credits = BACK_FROM_CREDITS_HOVER
-        else:
-            back_from_credits = BACK_FROM_CREDITS_DEFAULT
-    if current_screen == 1:
-        if (
-            pos[0] >= play_button_area[0] and
-            pos[0] <= play_button_area[1] and
-            pos[1] >= play_button_area[2] and
-            pos[1] <= play_button_area[3]
-            ):
-            if debug:
-                print("hover play buton")
-            play_button = PLAY_BUTTON_HOVER
-        else:
-            play_button = PLAY_BUTTON_DEFAULT
-        if (
-            pos[0] >= credits_button_area[0] and
-            pos[0] <= credits_button_area[1] and
-            pos[1] >= credits_button_area[2] and
-            pos[1] <= credits_button_area[3]
-            ):
-            if debug:
-                print("You are hovering the credits button")
-            credits_button = CREDITS_BUTTON_HOVER
-        else:
-            credits_button = CREDITS_BUTTON_DEFAULT
-        if (
-            pos[0] >= debug_button_area[0] and
-            pos[0] <= debug_button_area[1] and
-            pos[1] >= debug_button_area[2] and
-            pos[1] <= debug_button_area[3]
-            ):
-            if debug == True:
-                print("hover debug buton")
-                debug_button = DEBUG_BUTTON_ON_HOVER
-            if debug == False:
-                debug_button = DEBUG_BUTTON_OFF_HOVER
-        else:
-            if debug:
-                debug_button = DEBUG_BUTTON_ON
-            else:
-                debug_button = DEBUG_BUTTON_OFF
-    if current_screen == 2:
-        if (
-            pos[0] >= back_from_play_area[0] and
-            pos[0] <= back_from_play_area[1] and
-            pos[1] >= back_from_play_area[2] and
-            pos[1] <= back_from_play_area[3]
-            ):
-            if debug == True:
-                print("Home button")
-            back_from_play = BACK_FROM_PLAY_HOVER
-        else:
-            back_from_play = BACK_FROM_PLAY_DEFAULT
-        if (
-            pos[0] >= easy_difficulty_icon_area[0] and
-            pos[0] <= easy_difficulty_icon_area[1] and
-            pos[1] >= easy_difficulty_icon_area[2] and
-            pos[1] <= easy_difficulty_icon_area[3] and
-            difficulty != 1
-            ):
-            if debug == True:
-                print("easy difficulty")
-            easy_difficulty_icon = EASY_DIFFICULTY_ICON_HOVER
-        elif difficulty != 1:
-            easy_difficulty_icon = EASY_DIFFICULTY_ICON_DEFAULT
-        if (
-            pos[0] >= medium_difficulty_icon_area[0] and
-            pos[0] <= medium_difficulty_icon_area[1] and
-            pos[1] >= medium_difficulty_icon_area[2] and
-            pos[1] <= medium_difficulty_icon_area[3] and
-            difficulty != 2
-            ):
-            if debug == True:
-                print("medium difficulty")
-            medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_HOVER
-        elif difficulty != 2:
-            medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_DEFAULT
-        if (
-            pos[0] >= hard_difficulty_icon_area[0] and
-            pos[0] <= hard_difficulty_icon_area[1] and
-            pos[1] >= hard_difficulty_icon_area[2] and
-            pos[1] <= hard_difficulty_icon_area[3] and
-            difficulty != 3
-            ):
-            if debug == True:
-                print("hard difficulty")
-            hard_difficulty_icon = HARD_DIFFICULTY_ICON_HOVER
-        elif difficulty != 3:
-            hard_difficulty_icon = HARD_DIFFICULTY_ICON_DEFAULT
-        if difficulty != 0:
-            if (
-                pos[0] >= game_start_button_area[0] and
-                pos[0] <= game_start_button_area[1] and
-                pos[1] >= game_start_button_area[2] and
-                pos[1] <= game_start_button_area[3]
-                ):
-                if debug:
-                    print("Hovering start button")
-                game_start_button = GAME_START_BUTTON_HOVER
-            else:
-                game_start_button = GAME_START_BUTTON_DEFAULT
-    if current_screen == 3:
-        for brew in current_brews:
-            brew.pos = pos
-        for tower_actor in CURRENT_TOWERS:
-            tower_actor.pos = pos
-        if (
-            pos[0] >= drop_down_button_area[0] and
-            pos[0] <= drop_down_button_area[1] and
-            pos[1] >= drop_down_button_area[2] and
-            pos[1] <= drop_down_button_area[3]
-            ):
-            if tower_selected_state == 0:
-                if drop_down_state == 1: # hidden, so the button faces down
-                    drop_down_button = DROP_DOWN_BUTTON_DOWN_HOVER
-                else:
-                    drop_down_button = DROP_DOWN_BUTTON_UP_HOVER
-            else:
-                drop_down_button = UNSELECT_TOWER_BUTTON_HOVER
-        else:
-            if tower_selected_state == 0:
-                if drop_down_state == 1:
-                    drop_down_button = DROP_DOWN_BUTTON_DOWN_DEFAULT
-                else:
-                    drop_down_button = DROP_DOWN_BUTTON_UP_DEFAULT
-            else:
-                drop_down_button = UNSELECT_TOWER_BUTTON_DEFAULT
-        if balance >= TOWERS_STATS[ARCHER][TOWER_COST]:
-            if (
-                pos[0] >= archer_button_area[0] and
-                pos[0] <= archer_button_area[1] and
-                pos[1] >= archer_button_area[2] and
-                pos[1] <= archer_button_area[3]
-                ):
-                archer_button = ARCHER_BUTTON_HOVER
-            else:
-                archer_button = ARCHER_BUTTON_DEFAULT
-        else:
-            archer_button = ARCHER_BUTTON_UNSELECTABLE
-        if balance >= TOWERS_STATS[WIZARD][TOWER_COST]:
-            if (
-                pos[0] >= wizard_button_area[0] and
-                pos[0] <= wizard_button_area[1] and
-                pos[1] >= wizard_button_area[2] and
-                pos[1] <= wizard_button_area[3]
-                ):
-                wizard_button = WIZARD_BUTTON_HOVER
-            else:
-                wizard_button = WIZARD_BUTTON_DEFAULT
-        else:
-            wizard_button = WIZARD_BUTTON_UNSELECTABLE
-        if balance >= TOWERS_STATS[IMP][TOWER_COST]:
-            if (
-                pos[0] >= imp_button_area[0] and
-                pos[0] <= imp_button_area[1] and
-                pos[1] >= imp_button_area[2] and
-                pos[1] <= imp_button_area[3]
-                ):
-                imp_button = IMP_BUTTON_HOVER
-            else:
-                imp_button = IMP_BUTTON_DEFAULT
-        else:
-            imp_button = IMP_BUTTON_UNSELECTABLE
-        if (
-            pos[0] >= start_game_button_area[0] and
-            pos[0] <= start_game_button_area[1] and
-            pos[1] >= start_game_button_area[2] and
-            pos[1] <= start_game_button_area[3] and
-            game_started != 1
-            ):
-            start_game_button = START_GAME_BUTTON_HOVER
-        else:
-            start_game_button = START_GAME_BUTTON_DEFAULT
-        if balance >= BREW_STATS[1][0] and selected_brew != 1:
-            if (
-                pos[0] >= brew_button_one_area[0] and
-                pos[0] <= brew_button_one_area[1] and
-                pos[1] >= brew_button_one_area[2] and
-                pos[1] <= brew_button_one_area[3]
-                ):
-                brew_one_button = BREW_ONE_HOVER
-            else:
-                brew_one_button = BREW_ONE_DEFAULT
-        else:
-            brew_one_button = BREW_ONE_UNSELECTABLE
-        if balance >= BREW_STATS[2][0] and selected_brew != 2:
-            if (
-                pos[0] >= brew_button_two_area[0] and
-                pos[0] <= brew_button_two_area[1] and
-                pos[1] >= brew_button_two_area[2] and
-                pos[1] <= brew_button_two_area[3]
-                ):
-                brew_two_button = BREW_TWO_HOVER
-            else:
-                brew_two_button = BREW_TWO_DEFAULT
-        else:
-            brew_two_button = BREW_TWO_UNSELECTABLE
-        if balance >= BREW_STATS[3][0] and selected_brew != 3:
-            if (
-                pos[0] >= brew_button_three_area[0] and
-                pos[0] <= brew_button_three_area[1] and
-                pos[1] >= brew_button_three_area[2] and
-                pos[1] <= brew_button_three_area[3]
-                ):
-                brew_three_button = BREW_THREE_HOVER
-            else:
-                brew_three_button = BREW_THREE_DEFAULT
-        else:
-            brew_three_button = BREW_THREE_UNSELECTABLE
-        if balance >= BREW_STATS[4][0] and selected_brew != 4:
-            if (
-                pos[0] >= brew_button_four_area[0] and
-                pos[0] <= brew_button_four_area[1] and
-                pos[1] >= brew_button_four_area[2] and
-                pos[1] <= brew_button_four_area[3]
-                ):
-                brew_four_button = BREW_FOUR_HOVER
-            else:
-                brew_four_button = BREW_FOUR_DEFAULT
-        else:
-            brew_four_button = BREW_FOUR_UNSELECTABLE
-        if balance >= BREW_STATS[5][0] and selected_brew != 5:
-            if (
-                pos[0] >= brew_button_five_area[0] and
-                pos[0] <= brew_button_five_area[1] and
-                pos[1] >= brew_button_five_area[2] and
-                pos[1] <= brew_button_five_area[3]
-                ):
-                brew_five_button = BREW_FIVE_HOVER
-            else:
-                brew_five_button = BREW_FIVE_DEFAULT
-        else:
-            brew_five_button = BREW_FIVE_UNSELECTABLE
-        if balance >= BREW_STATS[6][0] and selected_brew != 6:
-            if (
-                pos[0] >= brew_button_six_area[0] and
-                pos[0] <= brew_button_six_area[1] and
-                pos[1] >= brew_button_six_area[2] and
-                pos[1] <= brew_button_six_area[3]
-                ):
-                brew_six_button = BREW_SIX_HOVER
-            else:
-                brew_six_button = BREW_SIX_DEFAULT
-        else:
-            brew_six_button = BREW_SIX_UNSELECTABLE
-        if selected_brew != 0:
-            if (
-                pos[0] >= buy_brew_button_area[0] and
-                pos[0] <= buy_brew_button_area[1] and
-                pos[1] >= buy_brew_button_area[2] and
-                pos[1] <= buy_brew_button_area[3]
-                ):
-                buy_brew_button = BUY_BREW_HOVER
-            else:
-                buy_brew_button = BUY_BREW_DEFAULT
-                
-
-def select_tower(tower):
-    global tower_selected_state, current_tower, drop_down_state
-    global selected_tower
-    current_tower = CURRENT_TOWERS[tower]
-    drop_down_state = 1 #hidden
-    tower_selected_state = 1
-    selected_tower = tower
-
-
-def place_tower(tower, slot):
-    global tower_slot_one, tower_slot_two, tower_slot_three
-    global tower_slot_one_stats, tower_slot_two_stats
-    global tower_slot_three_stats, tower_selected_state
-    global selected_tower, current_tower
-    global tower_slot_one_occupied, tower_slot_two_occupied
-    global tower_slot_three_occupied, selected_tower
-    global balance, current_tower_one, current_tower_two
-    global current_tower_three
-    for stat in TOWERS_STATS[tower]:
-        if slot == 1:
-            tower_slot_one_stats.append(stat)
-            tower_slot_one_occupied = True
-        elif slot == 2:
-            tower_slot_two_stats.append(stat)
-            tower_slot_two_occupied = True
-        else:
-            tower_slot_three_stats.append(stat)
-            tower_slot_three_occupied = True
-    if slot == 1:
-        current_tower_one = TOWERS_STATS[selected_tower][0]
-        if selected_tower == 1:
-            tower_slot_one = TOWER_SLOT_ONE_ARCHER_LEFT
-        elif selected_tower == 2:
-            tower_slot_one = TOWER_SLOT_ONE_WIZARD_LEFT
-        else:
-            tower_slot_one = TOWER_SLOT_ONE_IMP_LEFT
-    elif slot == 2:
-        current_tower_two = TOWERS_STATS[selected_tower][0]
-        if selected_tower == 1:
-            tower_slot_two = TOWER_SLOT_TWO_ARCHER_LEFT
-        elif selected_tower == 2:
-            tower_slot_two = TOWER_SLOT_TWO_WIZARD_LEFT
-        else:
-            tower_slot_two = TOWER_SLOT_TWO_IMP_LEFT	
-    else:
-        current_tower_three = TOWERS_STATS[selected_tower][0]
-        if selected_tower == 1:
-            tower_slot_three = TOWER_SLOT_THREE_ARCHER_LEFT
-        elif selected_tower == 2:
-            tower_slot_three = TOWER_SLOT_THREE_WIZARD_LEFT
-        else:
-            tower_slot_three = TOWER_SLOT_THREE_IMP_LEFT
-    tower_selected_state = 0
-    balance -= TOWERS_STATS[tower][TOWER_COST]
-    selected_tower = 0
-    current_tower = CURRENT_TOWERS[EMPTY]
-
-
-def select_tower_to_sell(tower_actor, tower_slot):
-    global tower_slot_one, tower_slot_two, tower_slot_three
-    global tower_slot_one_stats, tower_slot_two_stats
-    global tower_slot_three_stats, selling_tower_selected_number
-    global sell_select, selling_tower_selected
-    sell_select.pos = tower_actor.pos
-    SELL_SELECT_DEFAULT.pos = tower_actor.pos
-    sell_select = SELL_SELECT_DEFAULT
-    selling_tower_selected = True
-    selling_tower_selected_number = tower_slot
-    
-
-def cancel_sell():
-    global tower_slot_one, tower_slot_two, tower_slot_three
-    global tower_slot_one_stats, tower_slot_two_stats
-    global tower_slot_three_stats, selling_tower_selected_number
-    global sell_select, selling_tower_selected
-    selling_tower_selected = False
-    sell_select = SELL_SELECT_HIDDEN
-
-
-def sell_tower(tower_slot):
-    global tower_slot_one, tower_slot_two, tower_slot_three
-    global tower_slot_one_stats, tower_slot_two_stats
-    global tower_slot_three_stats, selling_tower_selected_number
-    global sell_select, selling_tower_selected
-    global balance
-    global tower_slot_one_occupied, tower_slot_two_occupied
-    global tower_slot_three_occupied
-    cancel_sell()
-    print(tower_slot)
-    if tower_slot == 1:
-        tower_slot_one = TOWER_SLOT_ONE_EMPTY
-        tower_slot_one_occupied = False
-        balance += tower_slot_one_stats[TOWER_COST]
-        tower_slot_one_stats = []
-        current_tower_one = ""
-    if tower_slot == 2:
-        tower_slot_two = TOWER_SLOT_TWO_EMPTY
-        tower_slot_two_occupied = False
-        balance += tower_slot_two_stats[TOWER_COST]
-        tower_slot_two_stats = []
-        current_tower_two = ""
-    if tower_slot == 3:
-        tower_slot_three = TOWER_SLOT_THREE_EMPTY
-        tower_slot_three_occupied = False
-        balance += tower_slot_three_stats[TOWER_COST]
-        tower_slot_three_stats = []
-        current_tower_three = ""
-
-
-def use_brew():
-    global selected_brew, field_effects, base_frames, enemy_speed
-    global current_brew
-    if selected_brew == 1:
-        spawn("glass_projectile", True)
-    elif selected_brew != 0:
-        field_effects[0] += BREW_STATS[selected_brew][1]
-        if field_effects[1] < BREW_STATS[selected_brew][2]:
-            field_effects[1] = BREW_STATS[selected_brew][2]
-            enemy_speed = field_effects[1]
-        field_effects[2] *= BREW_STATS[selected_brew][3]
-        base_frames = round(field_effects[2] * 10, 0)
-    selected_brew = 0
-    current_brew = current_brews[0]
-
-
-def on_mouse_down(pos, button):
-    global debug, debug_button
-    global current_screen, difficulty
-    global easy_difficulty_icon, medium_difficulty_icon
-    global hard_difficulty_icon, drop_down_state, game_bar_state
-    global current_tower, tower_selected_state
-    global selling_tower_selected_number, start_game_button
-    global selected_brew, buy_brew_button
-    if current_screen == 0:
-        if (
-            pos[0] >= back_from_credits_area[0] and
-            pos[0] <= back_from_credits_area[1] and
-            pos[1] >= back_from_credits_area[2] and
-            pos[1] <= back_from_credits_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("back to home page")
-            current_screen = 1
-    if current_screen == 1:
-        if (
-            pos[0] >= play_button_area[0] and
-            pos[0] <= play_button_area[1] and
-            pos[1] >= play_button_area[2] and
-            pos[1] <= play_button_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("Congrats, you pressed the PLAY button.")
-            current_screen = 2
-        if (
-            pos[0] >= credits_button_area[0] and
-            pos[0] <= credits_button_area[1] and
-            pos[1] >= credits_button_area[2] and
-            pos[1] <= credits_button_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("Congrats, you pressed the CREDITS button.")
-            current_screen = 0
-        if (
-            pos[0] >= debug_button_area[0] and
-            pos[0] <= debug_button_area[1] and
-            pos[1] >= debug_button_area[2] and
-            pos[1] <= debug_button_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("DEBUG is off now.")
-                debug_button = DEBUG_BUTTON_OFF
-                debug = False
-            elif debug == False:
-                print("DEBUG is on now.")
-                debug_button = DEBUG_BUTTON_ON
-                debug = True
-    if current_screen == 2:
-        if (
-            pos[0] >= back_from_play_area[0] and
-            pos[0] <= back_from_play_area[1] and
-            pos[1] >= back_from_play_area[2] and
-            pos[1] <= back_from_play_area[3] and
-            mouse.LEFT == button
-            ):
-            if debug == True:
-                print("back to home page")
-            current_screen = 1
-        if difficulty != 1:
-            if (
-                pos[0] >= easy_difficulty_icon_area[0] and
-                pos[0] <= easy_difficulty_icon_area[1] and
-                pos[1] >= easy_difficulty_icon_area[2] and
-                pos[1] <= easy_difficulty_icon_area[3] and
-                mouse.LEFT == button
-                ):
-                if debug == True:
-                    print("easy difficulty pressed")
-                easy_difficulty_icon = EASY_DIFFICULTY_ICON_SELECT
-                difficulty = 1
-        if difficulty != 2:
-            if (
-                pos[0] >= medium_difficulty_icon_area[0] and
-                pos[0] <= medium_difficulty_icon_area[1] and
-                pos[1] >= medium_difficulty_icon_area[2] and
-                pos[1] <= medium_difficulty_icon_area[3] and
-                mouse.LEFT == button
-                ):
-                if debug == True:
-                    print("medium difficulty pressed")
-                medium_difficulty_icon = MEDIUM_DIFFICULTY_ICON_SELECT
-                difficulty = 2
-        if difficulty != 3:
-            if (
-                pos[0] >= hard_difficulty_icon_area[0] and
-                pos[0] <= hard_difficulty_icon_area[1] and
-                pos[1] >= hard_difficulty_icon_area[2] and
-                pos[1] <= hard_difficulty_icon_area[3] and
-                mouse.LEFT == button
-                ):
-                if debug == True:
-                    print("hard difficulty pressed")
-                hard_difficulty_icon = HARD_DIFFICULTY_ICON_SELECT
-                difficulty = 3
-        if difficulty != 0:
-            if (
-                pos[0] >= game_start_button_area[0] and
-                pos[0] <= game_start_button_area[1] and
-                pos[1] >= game_start_button_area[2] and
-                pos[1] <= game_start_button_area[3] and
-                mouse.LEFT == button
-                ):
-                if debug:
-                    print("starting game")
-                prepare_game()
-    if current_screen == 3:
-        if button == mouse.LEFT:
-            if current_brew != current_brews[0]:
-                use_brew()
-            if (
-                pos[0] >= drop_down_button_area[0] and
-                pos[0] <= drop_down_button_area[1] and
-                pos[1] >= drop_down_button_area[2] and
-                pos[1] <= drop_down_button_area[3]
-                ):
-                if tower_selected_state == 0:
-                    if drop_down_state == 0:
-                        drop_down_state = 1
-                    else:
-                        drop_down_state = 0
-                else:
-                    current_tower = CURRENT_TOWERS[EMPTY]
-                    tower_selected_state = 0
-            if (
-                pos[0] >= game_bar_switcher_area[0] and
-                pos[0] <= game_bar_switcher_area[1] and
-                pos[1] >= game_bar_switcher_area[2] and
-                pos[1] <= game_bar_switcher_area[3]
-                ):
-                if game_bar_state == 0:
-                    game_bar_state = 1
-                else:
-                    game_bar_state = 0
-            if balance >= TOWERS_STATS[ARCHER][TOWER_COST]:
-                if (
-                    pos[0] >= archer_button_area[0] and
-                    pos[0] <= archer_button_area[1] and
-                    pos[1] >= archer_button_area[2] and
-                    pos[1] <= archer_button_area[3]
-                    ):
-                    select_tower(ARCHER)
-            if balance >= TOWERS_STATS[WIZARD][TOWER_COST]:
-                if (
-                    pos[0] >= wizard_button_area[0] and
-                    pos[0] <= wizard_button_area[1] and
-                    pos[1] >= wizard_button_area[2] and
-                    pos[1] <= wizard_button_area[3]
-                    ):
-                    select_tower(WIZARD)
-            if balance >= TOWERS_STATS[IMP][TOWER_COST]:
-                if (
-                    pos[0] >= imp_button_area[0] and
-                    pos[0] <= imp_button_area[1] and
-                    pos[1] >= imp_button_area[2] and
-                    pos[1] <= imp_button_area[3]
-                    ):
-                    select_tower(IMP)
-            if tower_selected_state == 1:
-                if (
-                    pos[0] >= tower_slot_one_area[0] and
-                    pos[0] <= tower_slot_one_area[1] and
-                    pos[1] >= tower_slot_one_area[2] and
-                    pos[1] <= tower_slot_one_area[3] and
-                    tower_slot_one_occupied == False
-                    ):
-                    place_tower(selected_tower, 1)
-                if (
-                    pos[0] >= tower_slot_two_area[0] and
-                    pos[0] <= tower_slot_two_area[1] and
-                    pos[1] >= tower_slot_two_area[2] and
-                    pos[1] <= tower_slot_two_area[3] and
-                    tower_slot_two_occupied == False
-                    ):
-                    place_tower(selected_tower, 2)
-                if (
-                    pos[0] >= tower_slot_three_area[0] and
-                    pos[0] <= tower_slot_three_area[1] and
-                    pos[1] >= tower_slot_three_area[2] and
-                    pos[1] <= tower_slot_three_area[3] and
-                    tower_slot_three_occupied == False
-                    ):
-                    place_tower(selected_tower, 3)
-            if selling_tower_selected == False:
-                if (
-                    pos[0] >= tower_slot_one_area[0] and
-                    pos[0] <= tower_slot_one_area[1] and
-                    pos[1] >= tower_slot_one_area[2] and
-                    pos[1] <= tower_slot_one_area[3] and
-                    tower_slot_one_occupied == True
-                    ):
-                    select_tower_to_sell(tower_slot_one, 1)
-                if (
-                    pos[0] >= tower_slot_two_area[0] and
-                    pos[0] <= tower_slot_two_area[1] and
-                    pos[1] >= tower_slot_two_area[2] and
-                    pos[1] <= tower_slot_two_area[3] and
-                    tower_slot_two_occupied == True
-                    ):
-                    select_tower_to_sell(tower_slot_two, 2)
-                if (
-                    pos[0] >= tower_slot_three_area[0] and
-                    pos[0] <= tower_slot_three_area[1] and
-                    pos[1] >= tower_slot_three_area[2] and
-                    pos[1] <= tower_slot_three_area[3] and
-                    tower_slot_three_occupied == True
-                    ):
-                    select_tower_to_sell(tower_slot_three, 3)
-            else:
-                if (
-                    pos[0] >= sell_select_area[0] and
-                    pos[0] <= sell_select_area[1] and
-                    pos[1] >= sell_select_area[2] and
-                    pos[1] <= sell_select_area[3]
-                    ):
-                    sell_tower(selling_tower_selected_number)
-                if (
-                    pos[0] >= cancel_area[0] and
-                    pos[0] <= cancel_area[1] and
-                    pos[1] >= cancel_area[2] and
-                    pos[1] <= cancel_area[3]
-                    ):
-                    cancel_sell()
-            if (
-                pos[0] >= start_game_button_area[0] and
-                pos[0] <= start_game_button_area[1] and
-                pos[1] >= start_game_button_area[2] and
-                pos[1] <= start_game_button_area[3] and
-                game_started != 1
-                ):
-                start_game()
-        if balance >= BREW_STATS[1][0] and selected_brew != 1:
-            if (
-                pos[0] >= brew_button_one_area[0] and
-                pos[0] <= brew_button_one_area[1] and
-                pos[1] >= brew_button_one_area[2] and
-                pos[1] <= brew_button_one_area[3]
-                ):
-                selected_brew = 1
-        if balance >= BREW_STATS[2][0] and selected_brew != 2:
-            if (
-                pos[0] >= brew_button_two_area[0] and
-                pos[0] <= brew_button_two_area[1] and
-                pos[1] >= brew_button_two_area[2] and
-                pos[1] <= brew_button_two_area[3]
-                ):
-                selected_brew = 2
-        if balance >= BREW_STATS[3][0] and selected_brew != 3:
-            if (
-                pos[0] >= brew_button_three_area[0] and
-                pos[0] <= brew_button_three_area[1] and
-                pos[1] >= brew_button_three_area[2] and
-                pos[1] <= brew_button_three_area[3]
-                ):
-                selected_brew = 3
-        if balance >= BREW_STATS[4][0] and selected_brew != 4:
-            if (
-                pos[0] >= brew_button_four_area[0] and
-                pos[0] <= brew_button_four_area[1] and
-                pos[1] >= brew_button_four_area[2] and
-                pos[1] <= brew_button_four_area[3]
-                ):
-                selected_brew = 4
-        if balance >= BREW_STATS[5][0] and selected_brew != 5:
-            if (
-                pos[0] >= brew_button_five_area[0] and
-                pos[0] <= brew_button_five_area[1] and
-                pos[1] >= brew_button_five_area[2] and
-                pos[1] <= brew_button_five_area[3]
-                ):
-                selected_brew = 5
-        if balance >= BREW_STATS[6][0] and selected_brew != 6:
-            if (
-                pos[0] >= brew_button_six_area[0] and
-                pos[0] <= brew_button_six_area[1] and
-                pos[1] >= brew_button_six_area[2] and
-                pos[1] <= brew_button_six_area[3]
-                ):
-                selected_brew = 6
-        if selected_brew != 0:
-            if (
-                pos[0] >= buy_brew_button_area[0] and
-                pos[0] <= buy_brew_button_area[1] and
-                pos[1] >= buy_brew_button_area[2] and
-                pos[1] <= buy_brew_button_area[3]
-                ):
-                buy_brew()
-            
 
 
 def draw(): # Draw all the buttons/actors
