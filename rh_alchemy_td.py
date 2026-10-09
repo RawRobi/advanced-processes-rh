@@ -1,5 +1,6 @@
 import pgzrun
 import random
+import time
 """
 COMPONENT TWO UPDATING ON FEEDBACK
 
@@ -21,9 +22,9 @@ TOWERS_STATS = [
 # Example:
 # [tower image, base cost, base cooldown, current cooldown, projectile sprite]
 ["empty"],
-["archer", 100, 8, 8, "archer_projectile", 10],
-["wizard", 250, 4, 4, "wizard_projectile", 10],
-["imp", 400, 2, 2, "imp_projectile", 10]
+["archer", 150, 8, 8, "archer_projectile", 10],
+["wizard", 550, 4, 4, "wizard_projectile", 10],
+["imp", 1200, 2, 2, "imp_projectile", 10]
     ]
 
 # variables to call for specific stats, which makes the code
@@ -54,9 +55,9 @@ enemy_stats = [
 # Example:
 # [initial cooldown, base cooldown, sprite]
     [5 * 60, 60, 0, "slime"],
-    [20 * 60, 45, 0, "zombie"],
-    [45 * 60, 30, 0, "enemy_imp"],
-    [60 * 60, 15, 0, "slime"],
+    [40 * 60, 45, 0, "zombie"],
+    [65 * 60, 30, 0, "enemy_imp"],
+    [90 * 60, 15, 0, "slime"],
     ]
 
 
@@ -474,11 +475,11 @@ BREW_STATS =[
 # tower attack rate mult
 [],
 [0],
-[50, 15 * 60, 3, 1],
-[125, 15 * 60, 0, 0.8],
-[250, 25 * 60, 4, 0.9],
-[300, 35 * 60, 7, 1],
-[500, 40 * 60, 0, 0.5]
+[100, 10 * 60, 3, 1],
+[200, 5 * 60, 0, 0.8],
+[450, 3 * 60, 6, 0.9],
+[850, 2 * 60, 10, 1],
+[2000, 2 * 60, 0, 0.5]
     ]
 
 field_effects = [0, 0, 1]
@@ -583,14 +584,59 @@ buy_brew_button_area = [
     buy_brew_button.y + (buy_brew_button_side / 2)
     ]
 
+GAME_OVER_SCREEN_DEFAULT = Actor("game_over_screen")
+GAME_OVER_HIDDEN = Actor("empty")
+game_over_screen = GAME_OVER_HIDDEN
+game_over_screen.x = 540
+game_over_screen.y = 270
+game_over_time = 300
+game_over_bool = False
+
 #
-# Seperate between functions and variables
+# Seperator between functions and variables
 #
 
+def game_over():
+    # The function that resets everything when lives run out
+    global tower_slot_one, tower_slot_two, tower_slot_three
+    global tower_slot_one_occupied, current_tower_one
+    global tower_slot_two_occupied, current_tower_two
+    global tower_slot_three_occupied, current_tower_three
+    global enemy_stats, balance, difficulty
+    global field_effects, spawned_enemies, spawned_projectiles
+    global game_over_screen, current_tower, current_brew, selected_brew
+    global selected_tower, game_started, lives, current_screen
+    global game_over_bool
+    spawned_enemies = []
+    spawned_projectiles = []
+    field_effects = [0, 0, 1]
+    tower_slot_one = TOWER_SLOT_ONE_EMPTY
+    tower_slot_one_occupied = False
+    current_tower_one = ""
+    tower_slot_two = TOWER_SLOT_TWO_EMPTY
+    tower_slot_three_occupied = False
+    current_tower_three = False
+    tower_slot_three = TOWER_SLOT_THREE_EMPTY
+    tower_slot_three_occupied = False
+    current_tower_three = ""
+    selected_tower = 0
+    selected_brew = 0
+    current_tower = CURRENT_TOWERS[0]
+    current_brew = current_brews[0]
+    enemy_stats[0][0] = 5 * 60
+    enemy_stats[1][0] = 40 * 60
+    enemy_stats[2][0] = 65 * 60
+    enemy_stats[3][0] = 90 * 60
+    lives = 5
+    game_started = 0
+    current_screen = 1
+    game_over_bool = True
+    
+
 def buy_brew():
+    # To set certain variables when buying a brew
     global balance, selected_brew, drop_down_state
     global current_brew
-    print(selected_brew, balance)
     balance -= BREW_STATS[selected_brew][0]
     current_brew = current_brews[selected_brew]
     drop_down_state = 1
@@ -644,98 +690,107 @@ def spawn(actor_name, from_player):
     
 
 def tick():
+    # The things that happen every update/every sixty seconds
     global enemy_stats, field_effects
     global TOWERS_STATS, balance
     global tower_slot_one, tower_slot_two, tower_slot_three
+    global game_over_bool, game_over_time
     # This tick allows for faster spawns and an increase
     # in difficulty over time
-    if balance >= 100000:
-        tick = 10
-    if balance >= 25000:
-        tick = 5
-    if balance >= 10000:
-        tick = 4
-    if balance >= 3000:
-        tick = 3
-    elif balance >= 1000:
-        tick = 2
-    else:
-        tick = 1
-    if tower_slot_one_occupied:
-        if tower_slot_one_stats[FRAME] > 0:
-            tower_slot_one_stats[FRAME] -= 1
+    if game_started == 1:
+        if balance >= 100000:
+            tick = 10
+        if balance >= 25000:
+            tick = 5
+        if balance >= 10000:
+            tick = 4
+        if balance >= 3000:
+            tick = 3
+        elif balance >= 1000:
+            tick = 2
         else:
-            tower_slot_one_stats[CURRENT_COOLDOWN] -= 1
-            tower_slot_one_stats[FRAME] = base_frames
-            tower_one_frame = tower_slot_one_stats[BASE_COOLDOWN] - 1 - tower_slot_one_stats[CURRENT_COOLDOWN]
-            if tower_slot_one_stats[CURRENT_COOLDOWN] == 0:
-                spawn(tower_slot_one_stats[PROJECTILE_SPRITE], True)
-                tower_slot_one_stats[CURRENT_COOLDOWN] = tower_slot_one_stats[BASE_COOLDOWN]
-            if current_tower_one == "archer":
-                TOWER_SLOT_ONE_ARCHER_ANIMATION[tower_one_frame].pos = tower_slot_one.pos
-                tower_slot_one = TOWER_SLOT_ONE_ARCHER_ANIMATION[tower_one_frame]
-            if current_tower_one == "wizard":
-                TOWER_SLOT_ONE_WIZARD_ANIMATION[tower_one_frame].pos = tower_slot_one.pos
-                tower_slot_one = TOWER_SLOT_ONE_WIZARD_ANIMATION[tower_one_frame]
-            if current_tower_one == "imp":
-                TOWER_SLOT_ONE_IMP_ANIMATION[tower_one_frame].pos = tower_slot_one.pos
-                tower_slot_one = TOWER_SLOT_ONE_IMP_ANIMATION[tower_one_frame]
-    if tower_slot_two_occupied:
-        if tower_slot_two_stats[FRAME] > 0:
-            tower_slot_two_stats[FRAME] -= 1
+            tick = 1
+        if tower_slot_one_occupied:
+            if tower_slot_one_stats[FRAME] > 0:
+                tower_slot_one_stats[FRAME] -= 1
+            else:
+                tower_slot_one_stats[CURRENT_COOLDOWN] -= 1
+                tower_slot_one_stats[FRAME] = base_frames
+                tower_one_frame = tower_slot_one_stats[BASE_COOLDOWN] - 1 - tower_slot_one_stats[CURRENT_COOLDOWN]
+                if tower_slot_one_stats[CURRENT_COOLDOWN] == 0:
+                    spawn(tower_slot_one_stats[PROJECTILE_SPRITE], True)
+                    tower_slot_one_stats[CURRENT_COOLDOWN] = tower_slot_one_stats[BASE_COOLDOWN]
+                if current_tower_one == "archer":
+                    TOWER_SLOT_ONE_ARCHER_ANIMATION[tower_one_frame].pos = tower_slot_one.pos
+                    tower_slot_one = TOWER_SLOT_ONE_ARCHER_ANIMATION[tower_one_frame]
+                if current_tower_one == "wizard":
+                    TOWER_SLOT_ONE_WIZARD_ANIMATION[tower_one_frame].pos = tower_slot_one.pos
+                    tower_slot_one = TOWER_SLOT_ONE_WIZARD_ANIMATION[tower_one_frame]
+                if current_tower_one == "imp":
+                    TOWER_SLOT_ONE_IMP_ANIMATION[tower_one_frame].pos = tower_slot_one.pos
+                    tower_slot_one = TOWER_SLOT_ONE_IMP_ANIMATION[tower_one_frame]
+        # Repeated for tower two
+        if tower_slot_two_occupied:
+            if tower_slot_two_stats[FRAME] > 0:
+                tower_slot_two_stats[FRAME] -= 1
+            else:
+                tower_slot_two_stats[CURRENT_COOLDOWN] -= 1
+                tower_slot_two_stats[FRAME] = base_frames
+                tower_two_frame = tower_slot_two_stats[BASE_COOLDOWN] - 1 - tower_slot_two_stats[CURRENT_COOLDOWN]
+                if tower_slot_two_stats[CURRENT_COOLDOWN] == 0:
+                    spawn(tower_slot_two_stats[PROJECTILE_SPRITE], True)
+                    tower_slot_two_stats[CURRENT_COOLDOWN] = tower_slot_two_stats[BASE_COOLDOWN]
+                if current_tower_two == "archer":
+                    TOWER_SLOT_TWO_ARCHER_ANIMATION[tower_two_frame].pos = tower_slot_two.pos
+                    tower_slot_two = TOWER_SLOT_TWO_ARCHER_ANIMATION[tower_two_frame]
+                if current_tower_two == "wizard":
+                    TOWER_SLOT_TWO_WIZARD_ANIMATION[tower_two_frame].pos = tower_slot_two.pos
+                    tower_slot_two = TOWER_SLOT_TWO_WIZARD_ANIMATION[tower_two_frame]
+                if current_tower_two == "imp":
+                    TOWER_SLOT_TWO_IMP_ANIMATION[tower_two_frame].pos = tower_slot_two.pos
+                    tower_slot_two = TOWER_SLOT_TWO_IMP_ANIMATION[tower_two_frame]
+        # Repeated for tower three
+        if tower_slot_three_occupied:
+            if tower_slot_three_stats[FRAME] > 0:
+                tower_slot_three_stats[FRAME] -= 1
+            else:
+                tower_slot_three_stats[CURRENT_COOLDOWN] -= 1
+                tower_slot_three_stats[FRAME] = base_frames
+                tower_three_frame = tower_slot_three_stats[BASE_COOLDOWN] - 1 - tower_slot_three_stats[CURRENT_COOLDOWN]
+                if tower_slot_three_stats[CURRENT_COOLDOWN] == 0:
+                    spawn(tower_slot_three_stats[PROJECTILE_SPRITE], True)
+                    tower_slot_three_stats[CURRENT_COOLDOWN] = tower_slot_three_stats[BASE_COOLDOWN]
+                if current_tower_three == "archer":
+                    TOWER_SLOT_THREE_ARCHER_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
+                    tower_slot_three = TOWER_SLOT_THREE_ARCHER_ANIMATION[tower_three_frame]
+                if current_tower_three == "wizard":
+                    TOWER_SLOT_THREE_WIZARD_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
+                    tower_slot_three = TOWER_SLOT_THREE_WIZARD_ANIMATION[tower_three_frame]
+                if current_tower_three == "imp":
+                    TOWER_SLOT_THREE_IMP_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
+                    tower_slot_three = TOWER_SLOT_THREE_IMP_ANIMATION[tower_three_frame]
+        if field_effects[0] != 0:
+            field_effects[0] -= 1
         else:
-            tower_slot_two_stats[CURRENT_COOLDOWN] -= 1
-            tower_slot_two_stats[FRAME] = base_frames
-            tower_two_frame = tower_slot_two_stats[BASE_COOLDOWN] - 1 - tower_slot_two_stats[CURRENT_COOLDOWN]
-            if tower_slot_two_stats[CURRENT_COOLDOWN] == 0:
-                spawn(tower_slot_two_stats[PROJECTILE_SPRITE], True)
-                tower_slot_two_stats[CURRENT_COOLDOWN] = tower_slot_two_stats[BASE_COOLDOWN]
-            if current_tower_two == "archer":
-                TOWER_SLOT_TWO_ARCHER_ANIMATION[tower_two_frame].pos = tower_slot_two.pos
-                tower_slot_two = TOWER_SLOT_TWO_ARCHER_ANIMATION[tower_two_frame]
-            if current_tower_two == "wizard":
-                TOWER_SLOT_TWO_WIZARD_ANIMATION[tower_two_frame].pos = tower_slot_two.pos
-                tower_slot_two = TOWER_SLOT_TWO_WIZARD_ANIMATION[tower_two_frame]
-            if current_tower_two == "imp":
-                TOWER_SLOT_TWO_IMP_ANIMATION[tower_two_frame].pos = tower_slot_two.pos
-                tower_slot_two = TOWER_SLOT_TWO_IMP_ANIMATION[tower_two_frame]
-    if tower_slot_three_occupied:
-        if tower_slot_three_stats[FRAME] > 0:
-            tower_slot_three_stats[FRAME] -= 1
-        else:
-            tower_slot_three_stats[CURRENT_COOLDOWN] -= 1
-            tower_slot_three_stats[FRAME] = base_frames
-            tower_three_frame = tower_slot_three_stats[BASE_COOLDOWN] - 1 - tower_slot_three_stats[CURRENT_COOLDOWN]
-            if tower_slot_three_stats[CURRENT_COOLDOWN] == 0:
-                spawn(tower_slot_three_stats[PROJECTILE_SPRITE], True)
-                tower_slot_three_stats[CURRENT_COOLDOWN] = tower_slot_three_stats[BASE_COOLDOWN]
-            if current_tower_three == "archer":
-                TOWER_SLOT_THREE_ARCHER_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
-                tower_slot_three = TOWER_SLOT_THREE_ARCHER_ANIMATION[tower_three_frame]
-            if current_tower_three == "wizard":
-                TOWER_SLOT_THREE_WIZARD_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
-                tower_slot_three = TOWER_SLOT_THREE_WIZARD_ANIMATION[tower_three_frame]
-            if current_tower_three == "imp":
-                TOWER_SLOT_THREE_IMP_ANIMATION[tower_three_frame].pos = tower_slot_three.pos
-                tower_slot_three = TOWER_SLOT_THREE_IMP_ANIMATION[tower_three_frame]
-    if field_effects[0] != 0:
-        field_effects[0] -= 1
-    else:
-        field_effects = [0, 0, 1]
-
-
-    for enemy_stat in enemy_stats:
-        if enemy_stat[ENEMY_INITIAL_COOLDOWN] >= 0:
-            enemy_stat[ENEMY_INITIAL_COOLDOWN] -= tick
-        elif enemy_stat[ENEMY_CURRENT_COOLDOWN] >= 0:
-            enemy_stat[ENEMY_CURRENT_COOLDOWN] -= tick
-        elif enemy_stat[ENEMY_CURRENT_COOLDOWN] <= 0:
-            enemy_stat[ENEMY_CURRENT_COOLDOWN] = enemy_stat[ENEMY_BASE_COOLDOWN]
-            spawn(enemy_stat[ENEMY_SPRITE], False)
-
+            field_effects = [0, 0, 1]
+        for enemy_stat in enemy_stats:
+            if enemy_stat[ENEMY_INITIAL_COOLDOWN] >= 0:
+                enemy_stat[ENEMY_INITIAL_COOLDOWN] -= tick
+            elif enemy_stat[ENEMY_CURRENT_COOLDOWN] >= 0:
+                enemy_stat[ENEMY_CURRENT_COOLDOWN] -= tick
+            elif enemy_stat[ENEMY_CURRENT_COOLDOWN] <= 0:
+                enemy_stat[ENEMY_CURRENT_COOLDOWN] = enemy_stat[ENEMY_BASE_COOLDOWN]
+                spawn(enemy_stat[ENEMY_SPRITE], False)
+    elif game_over_bool == True:
+        game_over_time -= 1
+        if game_over_time == 0:
+            game_over_bool = False
+            game_over_time = 300
+        
 
 def update():
-    global back_from_credits_area, balance
+    # These all happen 60 times a second.
+    global back_from_credits_area, balance, game_over_bool
     global play_button_area, current_screen
     global credits_button_area, game_started
     global debug_button_area, LIVES_DISPLAY, lives
@@ -759,10 +814,10 @@ def update():
     global brew_button_four_area, brew_button_five_area
     global brew_button_six_area, buy_brew_button_area
     global buy_brew_button, brew_descriptor, tower_slot_one
-    global tower_slot_two, tower_slot_three
+    global tower_slot_two, tower_slot_three, game_over_screen
     # The following three "if" statements make it so the following
     # move smoothly:
-    # menu screen, 
+    # menu screen
     if FULL_MENU.x != SCREEN_X[current_screen]:
         if FULL_MENU.x >= SCREEN_X[current_screen]:
             direction = -1 # To the right
@@ -918,6 +973,8 @@ def update():
         game_bar_switcher.y - 48,
         game_bar_switcher.y + 48
     ]
+    # These ones have the positions updated first, so that the
+    # collision boxes are accurate
     archer_button.x = game_bar.x + 160
     archer_button.y = game_bar.y
     wizard_button.x = archer_button.x + 360
@@ -1153,15 +1210,19 @@ def update():
         brew_six_button = BREW_SIX_SELECT
     if selected_brew == 0:
         buy_brew_button = BUY_BREW_UNSELECTABLE
+    if game_over_bool:
+        game_over_screen = GAME_OVER_SCREEN_DEFAULT
+    else:
+        game_over_screen = GAME_OVER_HIDDEN
     brew_descriptor = brew_descriptor_states[selected_brew]
+    tick()
 
-    # tower firing functions - component four
+    # tower firing functions
     
     if game_started == 1:
         balance = round(balance, 1)
         if start_game_button != START_GAME_BUTTON_HIDDEN:
             start_game_button = START_GAME_BUTTON_HIDDEN
-        tick()
         for projectile in spawned_projectiles:
             projectile.x += PROJECTILE_SPEED
             enemy_index = projectile.collidelist(spawned_enemies)
@@ -1178,14 +1239,7 @@ def update():
                 lives -= 1
 
         if lives == 0:
-            game_started = 0
-            current_screen = 1
-            spawned_enemies = []
-            balance = 150
-            tower_slot_one = TOWER_SLOT_ONE_EMPTY
-            tower_slot_two = TOWER_SLOT_TWO_EMPTY
-            tower_slot_three = TOWER_SLOT_THREE_EMPTY
-            lives = 5
+            game_over()
 
 
 def prepare_game():
@@ -1953,6 +2007,7 @@ def draw(): # Draw all the buttons/actors
     LIVES_DISPLAY.draw()
     screen.draw.text("Lives: " + str(lives), (LIVES_DISPLAY.x - 49 * 3, LIVES_DISPLAY.y - 16 * 3), fontsize = 100)
     current_brew.draw()
+    game_over_screen.draw()
     
 
 pgzrun.go() # This must be at the end of the code for it to run
